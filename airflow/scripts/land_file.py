@@ -48,7 +48,7 @@ def main():
     """
     logging.info("Loading compressed file into object storage...")
     file_name = os.path.basename(ftp_file_path)
-    file_name_date = file_name[:-4] + f"_{date_today}" + file_name[-4:]
+    file_name_date = file_name[:-4] + f"_{date_today_str}" + file_name[-4:]
     try:
         s3.put_object(
             Bucket=bucket_name,
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     ## Date
     melb_tz = pytz.timezone('Australia/Melbourne')
     datetime_now = datetime.now(melb_tz)
-    date_today = datetime_now.date().strftime("%Y-%m-%d")
+    date_today_str = datetime_now.date().strftime("%Y-%m-%d")
     ## FTP compressed file source
     ftp_file_path = "ftp://ftp2.bom.gov.au/anon/gen/clim_data/IDCKWCDEA0.tgz"
     ## S3-compatible object storage via MinIO
