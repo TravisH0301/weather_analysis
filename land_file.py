@@ -4,16 +4,12 @@ import tarfile
 import logging
 from urllib.request import urlopen
 
-from minio import Minio
+import boto3
 
 
 def download_ftp(ftp_file_path):
     response = urlopen(ftp_file_path)
     return io.BytesIO(response.read())
-
-
-def upload_to_minio(client, bucket_name, object_name, data):
-    client.put_object(bucket_name, object_name, data, length=-1, part_size=10*1024*1024)
 
 
 def main():
@@ -24,7 +20,7 @@ def main():
     comp_file_in_memory = download_ftp(ftp_file_path)
     logging.info("Compressed file has been downloaded")
 
-    # Extract file and load to MinIO object storage
+    # Extract file and load to object storage
     logging.info("Extracting and loading files to object storage...")
     with tarfile.open(fileobj=comp_file_in_memory) as tar:
         for member in tar.getmembers():
@@ -32,7 +28,11 @@ def main():
             if f is not None:
                 try:
                     file_in_memory = io.BytesIO(f.read())
-                    upload_to_minio(minioClient, bucket_name, member.name, file_in_memory)
+                    s3.put_object(
+                        Bucket=bucket_name,
+                        Key=member.name,
+                        Body=file_in_memory
+                    )
                 except Exception:
                     logging.error(f"Error occurred while loading {member.name} to object storage:", exc_info=True)
     logging.info("files have been extracted and loaded to object storage")
@@ -52,14 +52,14 @@ if __name__ == "__main__":
     )
     ## FTP
     ftp_file_path = "ftp://ftp2.bom.gov.au/anon/gen/clim_data/IDCKWCDEA0.tgz"
-    ## MinIO
-    object_storage_access_key = os.environ["OBJECT_STORAGE_ACCESS_KEY"]
-    object_storage_secret_key = os.environ["OBJECT_STORAGE_SECRET_KEY"]
-    minioClient = Minio(
-        endpoint="http://172.17.0.2:9000",
-        access_key=object_storage_access_key,
-        secret_key=object_storage_secret_key,
-        secure=False
+    ## S3-compatible object storage via MinIO
+    s3_access_key = os.environ["S3_ACCESS_KEY"]
+    s3_secret_key = os.environ["S3_SECRET_KEY"]
+    s3 = boto3.client(
+        "s3",
+        endpoint_url="http://172.17.0.1:9000",
+        aws_access_key_id=s3_access_key,
+        aws_secret_access_key=s3_secret_key
     )
     bucket_name = "bom-landing"
 
