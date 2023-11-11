@@ -1,9 +1,6 @@
 dbt-env
 
 log/*.txt
-target/
-dbt_packages/
-logs/
 
 *.pdf
 *.lnk
