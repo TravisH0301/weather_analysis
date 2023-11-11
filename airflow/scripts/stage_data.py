@@ -208,7 +208,7 @@ def main():
     latest_file.seek(0)
     with tarfile.open(fileobj=latest_file) as tar_file:
         for member in tar_file.getmembers():
-            # Process and load csv datasets for weather
+            # Process and load csv files for weather datasets
             if member.isfile() and member.name.endswith(".csv"):
                 # # Convert csv file object to dataframe
                 # state = member.name.split("/")[1].upper()
@@ -223,8 +223,8 @@ def main():
 
                 continue
             
-            # Process and load fwf text dataset for station
-            elif member.isfile() and member.name == "stations_db.txt":
+            # Process and load fwf text file for station dataset
+            elif member.isfile() and member.name.endswith(".txt"):
                 # Convert fwf text file object to dataframe
                 fwf_obj = tar_file.extractfile(member)
                 df_station = pre_process_fwf(fwf_obj, latest_file_date)
@@ -402,3 +402,6 @@ if __name__ == "__main__":
     except Exception:
         logging.error("Process has failed:", exc_info=True)
         raise
+    finally:
+        cur.close()
+        conn.close()
