@@ -1,7 +1,9 @@
 ###############################################################################
 # Name: stage_data.py
-# Description: 
-#              
+# Description: This script extracts weather and station datasets from the
+#              compressed BOM dataset file in the object storage. And this 
+#              pre-processes datasets and loads them into the Snowflake
+#              tables in the staging schema.
 # Author: Travis Hong
 # Repository: https://github.com/TravisH0301/weather_analysis
 ###############################################################################
