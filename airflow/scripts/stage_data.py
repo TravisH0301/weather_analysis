@@ -169,6 +169,9 @@ def pre_process_fwf(file_obj, file_date):
     for col in columns[1:-2]:
         df[col] = df[col].str.strip()
 
+    # Convert STATION_ID column into string data type & fill zero upto 6 characters
+    df["STATION_ID"] = df["STATION_ID"].astype(str).str.zfill(6)
+
     # Convert STATION_SINCE column into date data type
     df["STATION_SINCE"] = pd.to_datetime(df["STATION_SINCE"], format="%Y%m%d..").dt.date
 
@@ -192,29 +195,47 @@ def main():
     )
 
     # Create Snowflake tables if not existing
-    cur.execute(query_create_tgt_table)
-    cur.execute(query_create_temp_table)
+    ## Target weather dataset table
+    cur.execute(query_create_tgt_weather)
+    ## Temporary weather dataset table
+    cur.execute(query_create_temp_table.format(table_temp_weather, table_tgt_weather))
+    ## Target station dataset table
+    cur.execute(query_create_tgt_station)
+    ## Temporary station dataset table
+    cur.execute(query_create_temp_table.format(table_temp_station, table_tgt_station))
 
     # Explore byte stream object to process and load datasets into Snowflake
     latest_file.seek(0)
     with tarfile.open(fileobj=latest_file) as tar_file:
         for member in tar_file.getmembers():
-            # Process and load csv datasets
+            # Process and load csv datasets for weather
             if member.isfile() and member.name.endswith(".csv"):
                 # # Convert csv file object to dataframe
                 # state = member.name.split("/")[1].upper()
                 # csv_obj = tar_file.extractfile(member)
-                # df = pre_process_csv(csv_obj, state, latest_file_date)
-                # # Load dataframe to temporary table
-                # write_pandas(conn, df, table_temp)
-                # # Merge from temporary table to target table
-                # cur.execute(query_merge)
-                # # Delete temporary table
-                # cur.execute(query_delete_temp_table)
+                # df_weather = pre_process_csv(csv_obj, state, latest_file_date)
+                # # Load dataframe to temporary weather table
+                # write_pandas(conn, df_weather, table_temp_weather)
+                # # Merge from temporary weather table to target weather table
+                # cur.execute(query_merge_weather)
+                # # Delete temporary weather table
+                # cur.execute(query_delete_temp_table.format(table_temp_weather))
+
+                continue
             
-            # Process and load station dataset
+            # Process and load fwf text dataset for station
             elif member.isfile() and member.name == "stations_db.txt":
-                print("hello")
+                # Convert fwf text file object to dataframe
+                fwf_obj = tar_file.extractfile(member)
+                df_station = pre_process_fwf(fwf_obj, latest_file_date)
+                # Load dataframe to temporary station table
+                write_pandas(conn, df_station, table_temp_station)
+                # Merge from temporary station table to target station table
+                cur.execute(query_merge_station)
+
+                exit()
+
+                
 
                 
 
@@ -227,8 +248,7 @@ def main():
 
 
 if __name__ == "__main__":
-    # Define variables
-    ## Logger
+    # Define logger
     logging.basicConfig(
         filename = "./log/stage_data_log.txt",
         filemode="w",
@@ -236,11 +256,13 @@ if __name__ == "__main__":
         format = "%(asctime)s; %(levelname)s; %(message)s",
         datefmt="%m/%d/%Y %I:%M:%S %p %Z"
     )
-    ## Date
+
+    # Define data variables
     melb_tz = pytz.timezone("Australia/Melbourne")
     datetime_now = datetime.now(melb_tz)
     date_today = datetime_now.date()
-    ## S3-compatible object storage via MinIO
+    
+    # Define S3-compatible object storage client via MinIO
     minio_endpoint = os.environ["MINIO_ENDPOINT"]
     minio_access_key = os.environ["MINIO_ACCESS_KEY"]
     minio_secret_key = os.environ["MINIO_SECRET_KEY"]
@@ -251,7 +273,8 @@ if __name__ == "__main__":
         aws_access_key_id=minio_access_key,
         aws_secret_access_key=minio_secret_key
     )
-    ## Snowflake
+
+    # Define Snowflake connection
     snowflake_user = os.environ["SNOWFLAKE_USER"]
     snowflake_pwd = os.environ["SNOWFLAKE_PWD"]
     snowflake_acct = os.environ["SNOWFLAKE_ACCT"]
@@ -267,10 +290,25 @@ if __name__ == "__main__":
         schema=snowflake_schema
     )
     cur = conn.cursor()
-    table_tgt = "WEATHER_PREPROCESSED"
-    table_temp = "WEATHER_PREPROCESSED_TEMP"
-    query_create_tgt_table = f"""
-        CREATE TABLE IF NOT EXISTS {table_tgt} (
+
+    # Define Snowflake tables
+    ## Weather dataset
+    table_tgt_weather = "WEATHER_PREPROCESSED"
+    table_temp_weather = "WEATHER_PREPROCESSED_TEMP"
+    ## Station dataset
+    table_tgt_station = "STATION_PREPROCESSED"
+    table_temp_station = "STATION_PREPROCESSED_TEMP"
+
+    # Define Snowflake queries
+    query_create_temp_table = """
+        CREATE TEMPORARY TABLE {} LIKE {};
+    """
+    query_delete_temp_table = """
+        DELETE FROM {};
+    """
+    ## Weather dataset
+    query_create_tgt_weather = f"""
+        CREATE TABLE IF NOT EXISTS {table_tgt_weather} (
             STATION_NAME VARCHAR(100),
             DATE DATE,
             EVAPO_TRANSPIRATION FLOAT,
@@ -287,15 +325,9 @@ if __name__ == "__main__":
             SOURCE_AS_OF DATE
         );
     """
-    query_create_temp_table = f"""
-        CREATE TEMPORARY TABLE {table_temp} LIKE {table_tgt};
-    """
-    query_delete_temp_table = f"""
-        DELETE FROM {table_temp};
-    """
-    query_merge = f"""
-        MERGE INTO {table_tgt} AS TARGET 
-        USING {table_temp} AS SOURCE
+    query_merge_weather = f"""
+        MERGE INTO {table_tgt_weather} AS TARGET 
+        USING {table_temp_weather} AS SOURCE
             ON TARGET.STATION_NAME = SOURCE.STATION_NAME
                 AND TARGET.DATE = SOURCE.DATE
             WHEN NOT MATCHED THEN INSERT (
@@ -328,6 +360,40 @@ if __name__ == "__main__":
                 SOURCE.STATE,
                 SOURCE.LOAD_DATE,
                 SOURCE.SOURCE_AS_OF
+            );
+    """
+    ## Station dataset
+    query_create_tgt_station = f"""
+        CREATE TABLE IF NOT EXISTS {table_tgt_station} (
+            STATION_ID VARCHAR(6),
+            STATE VARCHAR(3),
+            DISTRICT_CODE VARCHAR(5),
+            STATIONS_NAME VARCHAR(40),
+            STATION_SINCE DATE,
+            LATITUDE FLOAT,
+            LONGITUDE FLOAT
+        );
+    """
+    query_merge_station = f"""
+        MERGE INTO {table_tgt_station} AS TARGET 
+        USING {table_temp_station} AS SOURCE
+            ON TARGET.STATION_ID = SOURCE.STATION_ID
+            WHEN NOT MATCHED THEN INSERT (
+                STATION_ID,
+                STATE,
+                DISTRICT_CODE,
+                STATIONS_NAME,
+                STATION_SINCE,
+                LATITUDE,
+                LONGITUDE
+            ) VALUES (
+                SOURCE.STATION_ID,
+                SOURCE.STATE,
+                SOURCE.DISTRICT_CODE,
+                SOURCE.STATIONS_NAME,
+                SOURCE.STATION_SINCE,
+                SOURCE.LATITUDE,
+                SOURCE.LONGITUDE
             );
     """
 
