@@ -7,19 +7,28 @@
 ###############################################################################
 import os
 import io
-import tarfile
 import logging
 from datetime import datetime
 import pytz
 from urllib.request import urlopen
 
-from minio import Minio
 import boto3
 
 
 def retrieve_ftp_file(ftp_file_path):
-    """This function retrieves the file via FTP
-    and stores in memory.
+    """
+    This function retrieves the file via FTP
+    as a byte stream object.
+
+    Parameters
+    ----------
+    ftp_file_path: str
+        FTP file path of the compressed BOM dataset file.
+
+    Returns
+    -------
+    object
+        Byte stream of the compressed BOM dataset file.
     """
     response = urlopen(ftp_file_path)
     return io.BytesIO(response.read())
@@ -28,9 +37,9 @@ def retrieve_ftp_file(ftp_file_path):
 def main():
     logging.info("Process has started")
 
-    # Retrieve compressed file into memory
+    # Retrieve compressed file as byte stream object
     logging.info("Retrieving compressed file...")
-    comp_file_in_memory = retrieve_ftp_file(ftp_file_path)
+    comp_file = retrieve_ftp_file(ftp_file_path)
     logging.info("Compressed file has been retrieved")
 
     # Load compressed file into object storage
@@ -44,7 +53,7 @@ def main():
         s3.put_object(
             Bucket=bucket_name,
             Key=file_name_date,
-            Body=comp_file_in_memory
+            Body=comp_file
         )
         logging.info("Compressed file has been loaded to object storage")
     except Exception:
@@ -54,7 +63,7 @@ def main():
 
 
 if __name__ == "__main__":
-    # Define configurations
+    # Define variables
     ## Logger
     logging.basicConfig(
         filename = "./log/land_file_log.txt",
@@ -73,13 +82,13 @@ if __name__ == "__main__":
     minio_endpoint = os.environ["MINIO_ENDPOINT"]
     minio_access_key = os.environ["MINIO_ACCESS_KEY"]
     minio_secret_key = os.environ["MINIO_SECRET_KEY"]
+    bucket_name = "bom-landing"
     s3 = boto3.client(
         "s3",
         endpoint_url=minio_endpoint,
         aws_access_key_id=minio_access_key,
         aws_secret_access_key=minio_secret_key
     )
-    bucket_name = "bom-landing"
 
     try:
         main()
