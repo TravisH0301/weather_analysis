@@ -118,8 +118,8 @@ def main():
     )
 
     # Create Snowflake tables if not existing
-    cur.execute(query_create_temp_table)
     cur.execute(query_create_tgt_table)
+    cur.execute(query_create_temp_table)
 
     # Explore byte stream object to process and load datasets into Snowflake
     latest_file.seek(0)
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     ## Snowflake
     snowflake_user = os.environ["SNOWFLAKE_USER"]
     snowflake_pwd = os.environ["SNOWFLAKE_PWD"]
-    snowflake_acct = "dkaiexr-DElj01774"  # os.environ["SNOWFLAKE_ACCT"]
+    snowflake_acct = os.environ["SNOWFLAKE_ACCT"]
     snowflake_wh = "COMPUTE_WH"
     snowflake_db = "WEATHER_ANALYSIS"
     snowflake_schema = "STAGING"
@@ -210,7 +210,7 @@ if __name__ == "__main__":
         );
     """
     query_create_temp_table = f"""
-        CREATE TEMPORARY TABLE {table_temp} AS {table_tgt};
+        CREATE TEMPORARY TABLE {table_temp} LIKE {table_tgt};
     """
     query_delete_temp_table = f"""
         DELETE FROM {table_temp};
