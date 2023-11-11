@@ -220,19 +220,14 @@ def main():
 
     # Create Snowflake tables if not existing
     logging.info("Creating Snowflake tables...")
-    ## Target weather dataset table
     cur.execute(query_create_tgt_weather)
-    ## Temporary weather dataset table
-    cur.execute(query_create_temp_table.format(table_temp_weather, table_tgt_weather))
-    ## Target station dataset table
     cur.execute(query_create_tgt_station)
-    ## Temporary station dataset table
-    cur.execute(query_create_temp_table.format(table_temp_station, table_tgt_station))
     logging.info("Snowflake tables have been created")
 
-    # Explore byte stream object to process and load datasets into Snowflake
-    logging.info("Loading weather and station datasets into Snowflake...")
+    # Pre-process weather and station datasets from byte stream object
+    logging.info("Pre-processing weather and station datasets...")
     latest_file.seek(0)
+    df_weather_li = []
     with tarfile.open(fileobj=latest_file) as tar_file:
         for member in tar_file.getmembers():
             # Process and load csv files for weather datasets
@@ -245,22 +240,22 @@ def main():
                 state = member.name.split("/")[1].upper()
                 csv_obj = tar_file.extractfile(member)
                 df_weather = pre_process_csv(csv_obj, state, latest_file_date)
-                # Load dataframe to temporary weather table
-                write_pandas(conn, df_weather, table_temp_weather)
-                # Merge from temporary weather table to target weather table
-                cur.execute(query_merge_weather)
-                # Delete temporary weather table
-                cur.execute(query_delete_temp_table.format(table_temp_weather))
+                df_weather_li.append(df_weather)
 
-            # Process and load fwf text file for station dataset
+            # Process and load text file for station dataset
             elif member.isfile() and member.name.endswith(".txt"):
                 # Convert fwf text file object to dataframe
                 fwf_obj = tar_file.extractfile(member)
-                df_station = pre_process_fwf(fwf_obj, latest_file_date)
-                # Load dataframe to temporary station table
-                write_pandas(conn, df_station, table_temp_station)
-                # Merge from temporary station table to target station table
-                cur.execute(query_merge_station)
+                df_station = pre_process_fwf(fwf_obj, latest_file_date)  
+    logging.info("Datasets have been pre-processed")
+
+    # Load pre-processed datasets into Snowflake staging schema
+    logging.info("Loading datasets into Snowflake staging schema...")
+    ## Combine weather datasets and load into target table
+    df_weather_combine = pd.concat(df_weather_li, ignore_index=True)
+    write_pandas(conn, df_weather_combine, table_tgt_weather)
+    ## Load station dataset into target table
+    write_pandas(conn, df_station, table_tgt_station)
     logging.info("Datasets have been loaded to Snowflake")
 
     logging.info("Process has completed")
@@ -313,18 +308,10 @@ if __name__ == "__main__":
     # Define Snowflake tables
     ## Weather dataset
     table_tgt_weather = "WEATHER_PREPROCESSED"
-    table_temp_weather = "WEATHER_PREPROCESSED_TEMP"
     ## Station dataset
     table_tgt_station = "STATION_PREPROCESSED"
-    table_temp_station = "STATION_PREPROCESSED_TEMP"
 
     # Define Snowflake queries
-    query_create_temp_table = """
-        CREATE TEMPORARY TABLE {} LIKE {};
-    """
-    query_delete_temp_table = """
-        DELETE FROM {};
-    """
     ## Weather dataset
     query_create_tgt_weather = f"""
         CREATE TABLE IF NOT EXISTS {table_tgt_weather} (
@@ -344,43 +331,6 @@ if __name__ == "__main__":
             SOURCE_AS_OF DATE
         );
     """
-    query_merge_weather = f"""
-        MERGE INTO {table_tgt_weather} AS TARGET 
-        USING {table_temp_weather} AS SOURCE
-            ON TARGET.STATION_NAME = SOURCE.STATION_NAME
-                AND TARGET.DATE = SOURCE.DATE
-            WHEN NOT MATCHED THEN INSERT (
-                STATION_NAME,
-                DATE,
-                EVAPO_TRANSPIRATION,
-                RAIN,
-                PAN_EVAPORATION,
-                MAXIMUM_TEMPERATURE,
-                MINIMUM_TEMPERATURE,
-                MAXIMUM_RELATIVE_HUMIDITY,
-                MINIMUM_RELATIVE_HUMIDITY,
-                AVERAGE_10M_WIND_SPEED,
-                SOLAR_RADIATION,
-                STATE,
-                LOAD_DATE,
-                SOURCE_AS_OF
-            ) VALUES (
-                SOURCE.STATION_NAME,
-                SOURCE.DATE,
-                SOURCE.EVAPO_TRANSPIRATION,
-                SOURCE.RAIN,
-                SOURCE.PAN_EVAPORATION,
-                SOURCE.MAXIMUM_TEMPERATURE,
-                SOURCE.MINIMUM_TEMPERATURE,
-                SOURCE.MAXIMUM_RELATIVE_HUMIDITY,
-                SOURCE.MINIMUM_RELATIVE_HUMIDITY,
-                SOURCE.AVERAGE_10M_WIND_SPEED,
-                SOURCE.SOLAR_RADIATION,
-                SOURCE.STATE,
-                SOURCE.LOAD_DATE,
-                SOURCE.SOURCE_AS_OF
-            );
-    """
     ## Station dataset
     query_create_tgt_station = f"""
         CREATE TABLE IF NOT EXISTS {table_tgt_station} (
@@ -392,28 +342,6 @@ if __name__ == "__main__":
             LATITUDE FLOAT,
             LONGITUDE FLOAT
         );
-    """
-    query_merge_station = f"""
-        MERGE INTO {table_tgt_station} AS TARGET 
-        USING {table_temp_station} AS SOURCE
-            ON TARGET.STATION_ID = SOURCE.STATION_ID
-            WHEN NOT MATCHED THEN INSERT (
-                STATION_ID,
-                STATE,
-                DISTRICT_CODE,
-                STATIONS_NAME,
-                STATION_SINCE,
-                LATITUDE,
-                LONGITUDE
-            ) VALUES (
-                SOURCE.STATION_ID,
-                SOURCE.STATE,
-                SOURCE.DISTRICT_CODE,
-                SOURCE.STATIONS_NAME,
-                SOURCE.STATION_SINCE,
-                SOURCE.LATITUDE,
-                SOURCE.LONGITUDE
-            );
     """
 
     try:
