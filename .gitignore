@@ -1,4 +1,5 @@
 dbt-env
+logs
 
 log/*.txt
 
