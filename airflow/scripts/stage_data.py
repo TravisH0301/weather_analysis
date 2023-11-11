@@ -75,6 +75,7 @@ def pre_process_csv(file_obj, state, file_date):
     df: pd.DataFrame
         Pre-processed dataset.
     """
+    # Define columns
     columns = [
         "STATION_NAME",
         "DATE",
@@ -89,6 +90,7 @@ def pre_process_csv(file_obj, state, file_date):
         "SOLAR_RADIATION"
     ]
 
+    # Load to dataframe
     df = pd.read_csv(
         file_obj,
         encoding="ISO-8859-1",
@@ -116,6 +118,67 @@ def pre_process_csv(file_obj, state, file_date):
     return df
 
 
+def pre_process_fwf(file_obj, file_date):
+    """
+    This function pre-processes FWF (fixed width format) file object
+    to define columns with additional attribute.
+
+    Parameters
+    ----------
+    file_obj: object
+        FWF file object in Byte.
+    file_date: str
+        Date when the compressed BOM dataset file was extracted.
+
+    Returns
+    -------
+    df: pd.DataFrame
+        Pre-processed dataset.
+    """
+    # Define column width specifications
+    col_width_specs = [
+        (0, 8),
+        (8, 12),
+        (12, 18),
+        (18, 59),
+        (59, 75),
+        (75, 84),
+        (84, 94)
+    ]
+
+    # Define columns
+    columns = [
+        "STATION_ID",
+        "STATE",
+        "DISTRICT_CODE",
+        "STATIONS_NAME",
+        "STATION_SINCE",
+        "LATITUDE",
+        "LONGITUDE"
+    ]
+
+    # Load to dataframe
+    df = pd.read_fwf(
+        file_obj,
+        colspecs=col_width_specs,
+        header=None,
+        names=columns
+    )
+
+    # Strip empty spaces
+    for col in columns[1:-2]:
+        df[col] = df[col].str.strip()
+
+    # Convert STATION_SINCE column into date data type
+    df["STATION_SINCE"] = pd.to_datetime(df["STATION_SINCE"], format="%Y%m%d..").dt.date
+
+    # Convert coordinate attributes into float data type
+    df["LATITUDE"] = df["LATITUDE"].astype(np.float64)
+    df["LONGITUDE"] = df["LONGITUDE"].astype(np.float64)
+
+    return df
+
+
 def main():
     logging.info("Process has started")
 
@@ -138,18 +201,22 @@ def main():
         for member in tar_file.getmembers():
             # Process and load csv datasets
             if member.isfile() and member.name.endswith(".csv"):
-                # Convert csv file object to dataframe
-                state = member.name.split("/")[1].upper()
-                csv_obj = tar_file.extractfile(member)
-                df = pre_process_csv(csv_obj, state, latest_file_date)
+                # # Convert csv file object to dataframe
+                # state = member.name.split("/")[1].upper()
+                # csv_obj = tar_file.extractfile(member)
+                # df = pre_process_csv(csv_obj, state, latest_file_date)
+                # # Load dataframe to temporary table
+                # write_pandas(conn, df, table_temp)
+                # # Merge from temporary table to target table
+                # cur.execute(query_merge)
+                # # Delete temporary table
+                # cur.execute(query_delete_temp_table)
+            
+            # Process and load station dataset
+            elif member.isfile() and member.name == "stations_db.txt":
+                print("hello")
+
                 
-                # Load dataframe to temporary table
-                write_pandas(conn, df, table_temp)
-
-                # Merge from temporary table to target table
-                cur.execute(query_merge)
-
-                exit()
 
 
 
