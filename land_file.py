@@ -1,7 +1,16 @@
+#####################################################################
+# Name: land_file.py
+# Description: This file extract the compressed BOM dataset via FTP
+#              and loads into the S3-compatible object storage.
+# Author: Travis Hong
+# Repository: https://github.com/TravisH0301/weather_analysis
+#####################################################################
 import os
 import io
 import tarfile
 import logging
+from datetime import datetime
+import pytz
 from urllib.request import urlopen
 
 import boto3
@@ -20,22 +29,19 @@ def main():
     comp_file_in_memory = download_ftp(ftp_file_path)
     logging.info("Compressed file has been downloaded")
 
-    # Extract file and load to object storage
-    logging.info("Extracting and loading files to object storage...")
-    with tarfile.open(fileobj=comp_file_in_memory) as tar:
-        for member in tar.getmembers():
-            f = tar.extractfile(member)
-            if f is not None:
-                try:
-                    file_in_memory = io.BytesIO(f.read())
-                    s3.put_object(
-                        Bucket=bucket_name,
-                        Key=member.name,
-                        Body=file_in_memory
-                    )
-                except Exception:
-                    logging.error(f"Error occurred while loading {member.name} to object storage:", exc_info=True)
-    logging.info("files have been extracted and loaded to object storage")
+    # Load compressed file into object storage
+    logging.info("Loading compressed file into object storage...")
+    file_name = os.path.basename(ftp_file_path)
+    file_name_date = file_name[:-4] + f"_{date_today}" + file_name[-4:]
+    try:
+        s3.put_object(
+            Bucket=bucket_name,
+            Key=file_name_date,
+            Body=comp_file_in_memory
+        )
+        logging.info("Compressed file has been loaded to object storage")
+    except Exception:
+        logging.error(f"Error occurred during file load:", exc_info=True)
 
     logging.info("Process has completed")
 
@@ -50,6 +56,10 @@ if __name__ == "__main__":
         format = "%(asctime)s; %(levelname)s; %(message)s",
         datefmt="%m/%d/%Y %I:%M:%S %p %Z"
     )
+    ## Date
+    tz = pytz.timezone('Australia/Melbourne')
+    datetime_now = datetime.now(tz)
+    date_today = datetime_now.date().strftime("%Y-%m-%d")
     ## FTP
     ftp_file_path = "ftp://ftp2.bom.gov.au/anon/gen/clim_data/IDCKWCDEA0.tgz"
     ## S3-compatible object storage via MinIO
