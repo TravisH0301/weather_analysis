@@ -1,10 +1,10 @@
-#####################################################################
+###############################################################################
 # Name: land_file.py
-# Description: This file extract the compressed BOM dataset via FTP
-#              and loads into the S3-compatible object storage.
+# Description: This script retrieves the compressed BOM dataset
+#              via FTP and loads into the S3-compatible object storage.
 # Author: Travis Hong
 # Repository: https://github.com/TravisH0301/weather_analysis
-#####################################################################
+###############################################################################
 import os
 import io
 import tarfile
@@ -13,10 +13,14 @@ from datetime import datetime
 import pytz
 from urllib.request import urlopen
 
+from minio import Minio
 import boto3
 
 
-def download_ftp(ftp_file_path):
+def retrieve_ftp_file(ftp_file_path):
+    """This function retrieves the file via FTP
+    and stores in memory.
+    """
     response = urlopen(ftp_file_path)
     return io.BytesIO(response.read())
 
@@ -24,12 +28,15 @@ def download_ftp(ftp_file_path):
 def main():
     logging.info("Process has started")
 
-    # Download compressed file into memory
-    logging.info("Downloading compressed file...")
-    comp_file_in_memory = download_ftp(ftp_file_path)
-    logging.info("Compressed file has been downloaded")
+    # Retrieve compressed file into memory
+    logging.info("Retrieving compressed file...")
+    comp_file_in_memory = retrieve_ftp_file(ftp_file_path)
+    logging.info("Compressed file has been retrieved")
 
     # Load compressed file into object storage
+    """Current date is added to the file name to keep track of 
+    BOM dataset version within the compressed file.
+    """
     logging.info("Loading compressed file into object storage...")
     file_name = os.path.basename(ftp_file_path)
     file_name_date = file_name[:-4] + f"_{date_today}" + file_name[-4:]
@@ -57,19 +64,20 @@ if __name__ == "__main__":
         datefmt="%m/%d/%Y %I:%M:%S %p %Z"
     )
     ## Date
-    tz = pytz.timezone('Australia/Melbourne')
-    datetime_now = datetime.now(tz)
+    melb_tz = pytz.timezone('Australia/Melbourne')
+    datetime_now = datetime.now(melb_tz)
     date_today = datetime_now.date().strftime("%Y-%m-%d")
-    ## FTP
+    ## FTP compressed file source
     ftp_file_path = "ftp://ftp2.bom.gov.au/anon/gen/clim_data/IDCKWCDEA0.tgz"
     ## S3-compatible object storage via MinIO
-    s3_access_key = os.environ["S3_ACCESS_KEY"]
-    s3_secret_key = os.environ["S3_SECRET_KEY"]
+    minio_endpoint = os.environ["MINIO_ENDPOINT"]
+    minio_access_key = os.environ["MINIO_ACCESS_KEY"]
+    minio_secret_key = os.environ["MINIO_SECRET_KEY"]
     s3 = boto3.client(
         "s3",
-        endpoint_url="http://172.17.0.1:9000",
-        aws_access_key_id=s3_access_key,
-        aws_secret_access_key=s3_secret_key
+        endpoint_url=minio_endpoint,
+        aws_access_key_id=minio_access_key,
+        aws_secret_access_key=minio_secret_key
     )
     bucket_name = "bom-landing"
 
