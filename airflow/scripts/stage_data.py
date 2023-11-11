@@ -186,6 +186,7 @@ def main():
     logging.info("Process has started")
 
     # Load latest compressed file as byte stream object
+    logging.info("Retrieving latest compressed file...")
     latest_file_name, latest_file_date = find_latest_file(s3, bucket_name)
     latest_file = io.BytesIO()
     s3.download_fileobj(
@@ -193,8 +194,10 @@ def main():
         Key=latest_file_name,
         Fileobj=latest_file
     )
+    logging.info("Compressed file has been retrieved")
 
     # Create Snowflake tables if not existing
+    logging.info("Creating Snowflake tables...")
     ## Target weather dataset table
     cur.execute(query_create_tgt_weather)
     ## Temporary weather dataset table
@@ -203,26 +206,26 @@ def main():
     cur.execute(query_create_tgt_station)
     ## Temporary station dataset table
     cur.execute(query_create_temp_table.format(table_temp_station, table_tgt_station))
+    logging.info("Snowflake tables have been created")
 
     # Explore byte stream object to process and load datasets into Snowflake
+    logging.info("Loading weather and station datasets into Snowflake...")
     latest_file.seek(0)
     with tarfile.open(fileobj=latest_file) as tar_file:
         for member in tar_file.getmembers():
             # Process and load csv files for weather datasets
             if member.isfile() and member.name.endswith(".csv"):
-                # # Convert csv file object to dataframe
-                # state = member.name.split("/")[1].upper()
-                # csv_obj = tar_file.extractfile(member)
-                # df_weather = pre_process_csv(csv_obj, state, latest_file_date)
-                # # Load dataframe to temporary weather table
-                # write_pandas(conn, df_weather, table_temp_weather)
-                # # Merge from temporary weather table to target weather table
-                # cur.execute(query_merge_weather)
-                # # Delete temporary weather table
-                # cur.execute(query_delete_temp_table.format(table_temp_weather))
+                # Convert csv file object to dataframe
+                state = member.name.split("/")[1].upper()
+                csv_obj = tar_file.extractfile(member)
+                df_weather = pre_process_csv(csv_obj, state, latest_file_date)
+                # Load dataframe to temporary weather table
+                write_pandas(conn, df_weather, table_temp_weather)
+                # Merge from temporary weather table to target weather table
+                cur.execute(query_merge_weather)
+                # Delete temporary weather table
+                cur.execute(query_delete_temp_table.format(table_temp_weather))
 
-                continue
-            
             # Process and load fwf text file for station dataset
             elif member.isfile() and member.name.endswith(".txt"):
                 # Convert fwf text file object to dataframe
@@ -232,17 +235,7 @@ def main():
                 write_pandas(conn, df_station, table_temp_station)
                 # Merge from temporary station table to target station table
                 cur.execute(query_merge_station)
-
-                exit()
-
-                
-
-                
-
-
-
-
-    
+    logging.info("Datasets have been loaded to Snowflake")
 
     logging.info("Process has completed")
 

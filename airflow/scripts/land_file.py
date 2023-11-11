@@ -95,3 +95,4 @@ if __name__ == "__main__":
     except Exception:
         logging.error("Process has failed:", exc_info=True)
         raise
+
