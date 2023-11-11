@@ -38,13 +38,15 @@ def find_latest_file(s3_client, bucket_name):
     latest_file_date: str
         Latest date of compressed BOM dataset file retrieval.
     """
+    # Retrieve files and their dates
     obj_name_date_dict = dict()
     response = s3_client.list_objects(Bucket=bucket_name)
     for obj in response["Contents"]:
         obj_name = obj["Key"]
         obj_date = obj_name[-14:-4]  #YYYY-MM-DD
         obj_name_date_dict[obj_name] = obj_date
-
+    
+    # Get the latest file with its latest date
     latest_obj_name = max(
         obj_name_date_dict, 
         key=lambda k: datetime.strptime(obj_name_date_dict[k], "%Y-%m-%d")
@@ -74,17 +76,17 @@ def pre_process_csv(file_obj, state, file_date):
         Pre-processed dataset.
     """
     columns = [
-        'STATION_NAME',
-        'DATE',
-        'EVAPO_TRANSPIRATION',
-        'RAIN',
-        'PAN_EVAPORATION',
-        'MAXIMUM_TEMPERATURE',
-        'MINIMUM_TEMPERATURE',
-        'MAXIMUM_RELATIVE_HUMIDITY',
-        'MINIMUM_RELATIVE_HUMIDITY',
-        'AVERAGE_10M_WIND_SPEED',
-        'SOLAR_RADIATION'
+        "STATION_NAME",
+        "DATE",
+        "EVAPO_TRANSPIRATION",
+        "RAIN",
+        "PAN_EVAPORATION",
+        "MAXIMUM_TEMPERATURE",
+        "MINIMUM_TEMPERATURE",
+        "MAXIMUM_RELATIVE_HUMIDITY",
+        "MINIMUM_RELATIVE_HUMIDITY",
+        "AVERAGE_10M_WIND_SPEED",
+        "SOLAR_RADIATION"
     ]
 
     df = pd.read_csv(
@@ -95,12 +97,21 @@ def pre_process_csv(file_obj, state, file_date):
         skipfooter=1,
         skip_blank_lines=True
     )
+
+    # Pre-process columns
+    ## Redefine columns
     df.columns = columns
+    ## Nulliyfy empty strings
+    df = df.replace("", None).replace(" ", None)
+    ## Convert measurement attributes into float data type
     for float_col in columns[2:]:
         df[float_col] = df[float_col].astype(np.float64)
-    df['STATE'] = state
-    df['LOAD_DATE'] = date_today
-    df['SOURCE_AS_OF'] = pd.to_datetime(file_date).date()
+    ## Convert DATE column into date data type
+    df["DATE"] = pd.to_datetime(df["DATE"], format="%d/%m/%Y").dt.date
+    ## Add additional attributes
+    df["STATE"] = state
+    df["LOAD_DATE"] = date_today
+    df["SOURCE_AS_OF"] = pd.to_datetime(file_date).date()
 
     return df
 
@@ -159,9 +170,9 @@ if __name__ == "__main__":
         datefmt="%m/%d/%Y %I:%M:%S %p %Z"
     )
     ## Date
-    melb_tz = pytz.timezone('Australia/Melbourne')
+    melb_tz = pytz.timezone("Australia/Melbourne")
     datetime_now = datetime.now(melb_tz)
-    date_today = datetime_now.date().strftime("%Y-%m-%d")
+    date_today = datetime_now.date()
     ## S3-compatible object storage via MinIO
     minio_endpoint = os.environ["MINIO_ENDPOINT"]
     minio_access_key = os.environ["MINIO_ACCESS_KEY"]
