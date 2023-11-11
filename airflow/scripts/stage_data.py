@@ -252,7 +252,7 @@ if __name__ == "__main__":
         datefmt="%m/%d/%Y %I:%M:%S %p %Z"
     )
 
-    # Define data variables
+    # Define date variables
     melb_tz = pytz.timezone("Australia/Melbourne")
     datetime_now = datetime.now(melb_tz)
     date_today = datetime_now.date()
