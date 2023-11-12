@@ -97,7 +97,7 @@ def main():
             cur.execute(query_create_year_partition.format(schema, year, cols_query_str))
             response = cur.fetchall()[0][0]
             logging.info(response)
-            
+
             if "successfully created" in response:
                 # Generate dbt model script for year partition table
                 script_name = f"{schema.lower()}_{year}.sql" 
@@ -137,9 +137,9 @@ if __name__ == "__main__":
         "EVAPO_TRANSPIRATION": ["EVAPO_TRANSPIRATION"],
         "RAIN": ["RAIN"],
         "PAN_EVAPORATION": ["PAN_EVAPORATION"],
-        "TEMPERATURE": ["MAX_TEMPERATURE", "MIN_TEMPERATURE"],
-        "RELATIVE_HUMIDITY": ["MAX_RELATIVE_HUMIDITY", "MIN_RELATIVE_HUMIDITY"],
-        "WIND_SPEED": ["AVG_10M_WIND_SPEED"],
+        "TEMPERATURE": ["MAXIMUM_TEMPERATURE", "MINIMUM_TEMPERATURE"],
+        "RELATIVE_HUMIDITY": ["MAXIMUM_RELATIVE_HUMIDITY", "MINIMUM_RELATIVE_HUMIDITY"],
+        "WIND_SPEED": ["AVERAGE_10M_WIND_SPEED"],
         "SOLAR_RADIATION": ["SOLAR_RADIATION"]
     }
 
