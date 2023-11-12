@@ -37,8 +37,6 @@ def find_latest_file(s3_client, bucket_name):
     -------
     latest_obj_name: str
         Name of the latest compressed BOM dataset file.
-    latest_file_date: str
-        Latest date of compressed BOM dataset file retrieval.
     """
     # Retrieve files and their dates
     obj_name_date_dict = dict()
@@ -53,9 +51,8 @@ def find_latest_file(s3_client, bucket_name):
         obj_name_date_dict, 
         key=lambda k: datetime.strptime(obj_name_date_dict[k], "%Y-%m-%d")
     )
-    latest_file_date = obj_name_date_dict[latest_obj_name]
     
-    return latest_obj_name, latest_file_date
+    return latest_obj_name
 
 
 def check_dataset_date_condition(file_name):
@@ -78,7 +75,7 @@ def check_dataset_date_condition(file_name):
     return create_year >= 2012
 
 
-def pre_process_csv(file_obj, state, file_date):
+def pre_process_csv(file_obj, state):
     """
     This function pre-processes CSV file object
     to refine columns with additional attributes.
@@ -89,8 +86,6 @@ def pre_process_csv(file_obj, state, file_date):
         CSV file object in Byte.
     state: str
         State the CSV dataset is from.
-    file_date: str
-        Date when the compressed BOM dataset file was extracted.
 
     Returns
     -------
@@ -135,12 +130,11 @@ def pre_process_csv(file_obj, state, file_date):
     ## Add additional attributes
     df["STATE"] = state
     df["LOAD_DATE"] = date_today
-    df["SOURCE_AS_OF"] = pd.to_datetime(file_date).date()
 
     return df
 
 
-def pre_process_fwf(file_obj, file_date):
+def pre_process_fwf(file_obj):
     """
     This function pre-processes FWF (fixed width format) file object
     to define columns with additional attribute.
@@ -149,8 +143,6 @@ def pre_process_fwf(file_obj, file_date):
     ----------
     file_obj: object
         FWF file object in Byte.
-    file_date: str
-        Date when the compressed BOM dataset file was extracted.
 
     Returns
     -------
@@ -209,7 +201,7 @@ def main():
 
     # Load latest compressed file as byte stream object
     logging.info("Retrieving latest compressed file...")
-    latest_file_name, latest_file_date = find_latest_file(s3, bucket_name)
+    latest_file_name = find_latest_file(s3, bucket_name)
     latest_file = io.BytesIO()
     s3.download_fileobj(
         Bucket=bucket_name,
@@ -239,14 +231,14 @@ def main():
                 # Convert csv file object to dataframe
                 state = member.name.split("/")[1].upper()
                 csv_obj = tar_file.extractfile(member)
-                df_weather = pre_process_csv(csv_obj, state, latest_file_date)
+                df_weather = pre_process_csv(csv_obj, state)
                 df_weather_li.append(df_weather)
 
             # Process and load text file for station dataset
             elif member.isfile() and member.name.endswith(".txt"):
                 # Convert fwf text file object to dataframe
                 fwf_obj = tar_file.extractfile(member)
-                df_station = pre_process_fwf(fwf_obj, latest_file_date)  
+                df_station = pre_process_fwf(fwf_obj)  
     logging.info("Datasets have been pre-processed")
 
     # Load pre-processed datasets into Snowflake staging schema
@@ -327,8 +319,7 @@ if __name__ == "__main__":
             AVERAGE_10M_WIND_SPEED FLOAT,
             SOLAR_RADIATION FLOAT,
             STATE VARCHAR(100),
-            LOAD_DATE DATE,
-            SOURCE_AS_OF DATE
+            LOAD_DATE DATE
         );
     """
     ## Station dataset
