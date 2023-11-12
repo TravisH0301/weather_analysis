@@ -6,6 +6,6 @@
 
 {{
     generate_year_partition_model(
-        "RAIN, "
+        "RAIN, ", 2016
     )
 }}

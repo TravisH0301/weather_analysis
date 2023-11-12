@@ -6,6 +6,6 @@
 
 {{
     generate_year_partition_model(
-        "PAN_EVAPORATION, "
+        "PAN_EVAPORATION, ", 2016
     )
 }}

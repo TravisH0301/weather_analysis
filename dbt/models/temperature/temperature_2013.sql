@@ -6,6 +6,6 @@
 
 {{
     generate_year_partition_model(
-        "MAXIMUM_TEMPERATURE, MINIMUM_TEMPERATURE, "
+        "MAXIMUM_TEMPERATURE, MINIMUM_TEMPERATURE, ", 2013
     )
 }}

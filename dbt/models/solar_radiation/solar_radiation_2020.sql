@@ -6,6 +6,6 @@
 
 {{
     generate_year_partition_model(
-        "SOLAR_RADIATION, "
+        "SOLAR_RADIATION, ", 2020
     )
 }}

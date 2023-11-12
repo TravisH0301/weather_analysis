@@ -6,6 +6,6 @@
 
 {{
     generate_year_partition_model(
-        "AVERAGE_10M_WIND_SPEED, "
+        "AVERAGE_10M_WIND_SPEED, ", 2013
     )
 }}

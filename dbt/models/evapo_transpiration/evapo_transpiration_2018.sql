@@ -6,6 +6,6 @@
 
 {{
     generate_year_partition_model(
-        "EVAPO_TRANSPIRATION, "
+        "EVAPO_TRANSPIRATION, ", 2018
     )
 }}
