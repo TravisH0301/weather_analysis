@@ -7,7 +7,6 @@
 ###############################################################################
 import os
 import io
-import logging
 from datetime import datetime
 import pytz
 from urllib.request import urlopen
@@ -65,13 +64,15 @@ def main():
 
 
 if __name__ == "__main__":
-    ## Date
+    # Define date variables
     melb_tz = pytz.timezone('Australia/Melbourne')
     datetime_now = datetime.now(melb_tz)
     date_today_str = datetime_now.date().strftime("%Y-%m-%d")
-    ## FTP compressed file source
+
+    # Define FTP compressed file source
     ftp_file_path = "ftp://ftp2.bom.gov.au/anon/gen/clim_data/IDCKWCDEA0.tgz"
-    ## S3-compatible object storage via MinIO
+
+    # Define S3-compatible object storage client via MinIO
     minio_endpoint = "http://host.docker.internal:9000"
     minio_access_key = os.environ["MINIO_ACCESS_KEY"]
     minio_secret_key = os.environ["MINIO_SECRET_KEY"]
