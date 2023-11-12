@@ -268,7 +268,7 @@ if __name__ == "__main__":
     # Define dbt data model script
     target_location = "/opt/airflow/dags/dbt/models/{}/{}"
     dbt_script_str_1 = "{{{{\n    config(\n        materialized='incremental'\n    )\n}}}}"
-    dbt_script_str_2 = "\n\n{{{{\n    generate_year_partition_model(\n        \"{}\", {}\n    )\n}}}}"
+    dbt_script_str_2 = "\n\n{{{{\n    generate_year_partition_model_macro(\n        \"{}\", {}\n    )\n}}}}"
     dbt_script_str = dbt_script_str_1 + dbt_script_str_2
 
     # Define dictionary of schema-specific columns
