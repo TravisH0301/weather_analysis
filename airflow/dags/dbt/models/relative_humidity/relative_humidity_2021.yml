@@ -1,0 +1,25 @@
+version: 2
+models:
+- name: relative_humidity_2021
+  columns:
+  - name: record_id
+    description: Synthetic key consisted of station name and date
+    tests:
+    - not_null
+    - unique
+  - name: station_name
+    description: Weather station name
+    tests:
+    - not_null
+  - name: date
+    description: Measurement date
+    tests:
+    - not_null
+  - name: maximum_relative_humidity
+    description: Maximum_relative_humidity(%)
+  - name: minimum_relative_humidity
+    description: Minimum_relative_humidity(%)
+  - name: state
+    description: Address state
+  - name: load_date
+    description: Date of data load from staging schema

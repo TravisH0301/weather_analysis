@@ -1,0 +1,27 @@
+version: 2
+models:
+- name: temperature_2020
+  columns:
+  - name: record_id
+    description: Synthetic key consisted of station name and date
+    tests:
+    - not_null
+    - unique
+  - name: station_name
+    description: Weather station name
+    tests:
+    - not_null
+  - name: date
+    description: Measurement date
+    tests:
+    - not_null
+  - name: maximum_temperature
+    description: Maximum temperature ('C)
+  - name: minimum_temperature
+    description: Minimum temperature ('C)
+  - name: variance_temperature
+    description: Temperature variance ('C)
+  - name: state
+    description: Address state
+  - name: load_date
+    description: Date of data load from staging schema
