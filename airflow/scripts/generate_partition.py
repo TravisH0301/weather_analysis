@@ -1,16 +1,19 @@
 ###############################################################################
 # Name: generate_partition.py
-# Description: 
-#
-# 
+# Description: This script automatically generates the followings based on the
+#              available years in the preprocessed weather table in Snowflake
+#              staging schema:
+#              - Year partition table for weather measurement schemas 
+#                (e.g., rain_2023)
+#              - dbt data model for the created partition table
+#                (e.g., rain_2023.sql)
+#              This script allows the dataset to grow incrementally without
+#              having to create new table nor dbt data model.
 # Author: Travis Hong
 # Repository: https://github.com/TravisH0301/weather_analysis
 ###############################################################################
 import os
 import logging
-from datetime import datetime
-import pytz
-import pandas as pd
 
 import snowflake.connector
 
@@ -25,7 +28,7 @@ def make_col_query_str(cols):
     Parameters
     ----------
     cols: list
-        list of columns to be added in the query.
+        List of columns to be added in the query.
 
     Returns
     -------
@@ -36,6 +39,26 @@ def make_col_query_str(cols):
     for col in cols:
         query_str += col + " FLOAT, "
     return query_str
+
+
+def generate_dbt_model_script(schema, year, script_name, target_location):
+    """
+    This function automatically generates a dbt data model script
+    of the year partition table for the given schema and year 
+    in the target location.
+
+    Parameters
+    ----------
+    schema: str
+        Name of schema.
+    year: int/str
+        Year for partition table.
+    target_location: str
+        Location for dbt data model script.
+    """
+    schema_lower = schema.lower()
+    with open(target_location.format(schema_lower, script_name), "w") as f:
+        f.write(dbt_script_str.format(schema_lower, year))
 
 
 def main():
@@ -49,13 +72,21 @@ def main():
     logging.info("Years have been fetched")
 
     # For each weather schema, create year partition tables if not existing
-    logging.info("Creating year partition tables for weather schemas...")
+    # and generate dbt model scripts for the created year partition tables
+    logging.info("Creating year partition tables & dbt model scripts for weather schemas...")
     for schema, cols in weather_schema_dict.items():
         cols_query_str = make_col_query_str(cols)
         for year in year_li:
+            # Create year partition table
             cur.execute(query_create_year_partition.format(schema, year, cols_query_str))
             response = cur.fetchall()[0][0]
             logging.info(response)
+
+            if "successfully created" in response:
+                # Generate dbt model script for year partition table
+                script_name = f"{schema.lower()}_{year}.sql" 
+                generate_dbt_model_script(schema, year, script_name, target_location)
+                logging.info(f"dbt model script {script_name} has been created")
     
     logging.info("Process has completed")
 
@@ -110,6 +141,10 @@ if __name__ == "__main__":
         );
     """
 
+    # Define dbt data model script
+    target_location = "./dbt/models/{}/{}"
+    dbt_script_str = "{{\n    config(\n        materialized='incremental'\n    )\n}}\n\n{{ generate_{}_model({}) }}"
+    
     try:
         main()
     except Exception:
