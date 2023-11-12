@@ -151,11 +151,24 @@ if __name__ == "__main__":
     query_create_year_partition = """
         CREATE TABLE {0}.{0}_{1} IF NOT EXISTS (
             RECORD_ID VARCHAR(100),
+            STATION_NAME VARCHAR(100),
             {2}
             STATE VARCHAR(3),
             LOAD_DATE DATE
         );
     """
+    ##########################################################
+    query_create_year_partition = """
+        CREATE OR REPLACE TABLE {0}.{0}_{1} (
+            RECORD_ID VARCHAR(100),
+            STATION_NAME VARCHAR(100),
+            DATE DATE,
+            {2}
+            STATE VARCHAR(3),
+            LOAD_DATE DATE
+        );
+    """
+    ##########################################################
 
     # Define dbt data model script
     target_location = "./dbt/models/{}/{}"
