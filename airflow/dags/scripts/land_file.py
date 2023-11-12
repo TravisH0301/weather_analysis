@@ -49,15 +49,13 @@ def main():
     logging.info("Loading compressed file into object storage...")
     file_name = os.path.basename(ftp_file_path)
     file_name_date = file_name[:-4] + f"_{date_today_str}" + file_name[-4:]
-    try:
-        s3.put_object(
-            Bucket=bucket_name,
-            Key=file_name_date,
-            Body=comp_file
-        )
-        logging.info("Compressed file has been loaded to object storage")
-    except Exception:
-        logging.error(f"Error occurred during file load:", exc_info=True)
+    s3.put_object(
+        Bucket=bucket_name,
+        Key=file_name_date,
+        Body=comp_file
+    )
+    logging.info("Compressed file has been loaded to object storage")
+    
 
     logging.info("Process has completed")
 
