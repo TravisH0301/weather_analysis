@@ -3,6 +3,7 @@ logs
 todo.txt
 .user.yml
 log/*.txt
+__pycache__/
 *.pdf
 *.lnk
 *.csv
