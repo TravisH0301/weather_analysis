@@ -16,6 +16,7 @@ import pandas as pd
 import numpy as np
 
 import boto3
+from botocore.exceptions import ClientError
 import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
 from airflow.utils.log.logging_mixin import LoggingMixin
@@ -203,11 +204,14 @@ def main():
     LoggingMixin().log.info("Retrieving latest compressed file...")
     latest_file_name = find_latest_file(s3, bucket_name)
     latest_file = io.BytesIO()
-    s3.download_fileobj(
-        Bucket=bucket_name,
-        Key=latest_file_name,
-        Fileobj=latest_file
-    )
+    try:
+        s3.download_fileobj(
+            Bucket=bucket_name,
+            Key=latest_file_name,
+            Fileobj=latest_file
+        )
+    except ClientError as e:
+        LoggingMixin().log.error("File load has failed with an error: {e}")  
     LoggingMixin().log.info("Compressed file has been retrieved")
 
     # Create Snowflake tables if not existing
