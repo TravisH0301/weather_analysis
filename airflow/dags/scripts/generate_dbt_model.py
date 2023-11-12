@@ -13,6 +13,7 @@
 # Repository: https://github.com/TravisH0301/weather_analysis
 ###############################################################################
 import os
+import yaml
 import logging
 
 import snowflake.connector
@@ -79,11 +80,75 @@ def generate_dbt_model_script(schema, year, script_name, target_location):
         Location for dbt data model script.
     """
     schema_lower = schema.lower()
-    attribute_li = weather_schema_dict_dbt[schema]
+    attribute_li = weather_schema_dict_model[schema]
     attribute_query_str = make_col_query_str(attribute_li, purpose="dbt_model_script")
 
     with open(target_location.format(schema_lower, script_name), "w") as f:
         f.write(dbt_script_str.format(attribute_query_str, year))
+
+
+def generate_schema_yml(schema, year, col_schema):
+    """
+    This function creates a schame yaml file for the year partition tables.
+    Schema-specific columns and their descriptions can be added dynamically by
+    passing them in a dictionary.
+
+    Parameters
+    ----------
+    schema: str
+        Name of schema.
+    year: int/str
+        Year for partition table.
+    col_schema: dict
+        Dictionary of schema-specific columns and descriptions.
+    """
+    # Define base schame
+    schema_dict = {
+        "version": 2,
+        "models": [{
+            "name": f"{schema}_{year}",
+            "columns": [
+                {
+                    "name": "record_id",
+                    "description": "Synthetic key consisted of station name and date",
+                    "tests": ["not_null", "unique"]
+                },
+                {
+                    "name": "station_name",
+                    "description": "Weather station name",
+                    "tests": ["not_null"]
+                },
+                {
+                    "name": "date",
+                    "description": "Measurement date",
+                    "tests": ["not_null"]
+                }
+            ]
+        }]
+    }
+    
+    # Dynamically add schema specifc columns and their tests to schema
+    for col_name, col_desc in col_schema.items():
+        column_entry = {
+            "name": col_name,
+            "description": col_desc,
+        }
+        schema_dict["models"][0]["columns"].append(column_entry)
+
+    # Add last 2 static columns to schema
+    schema_dict["models"][0]["columns"].append({
+        "name": "state",
+        "description": "Address state",
+    })
+    schema_dict["models"][0]["columns"].append({
+        "name": "load_date",
+        "description": "Date of data load from staging schema",
+    })
+
+    # Write YAML file
+    file_path = f"/opt/airflow/dags/dbt/models/{schema}/{schema}_{year}.yml"    
+    with open(file_path, "w") as f:
+        yaml.dump(schema_dict, f, sort_keys=False)
 
 
 def main():
@@ -106,12 +171,18 @@ def main():
             cur.execute(query_create_year_partition.format(schema, year, cols_query_str))
             response = cur.fetchall()[0][0]
             logging.info(response)
-
+            response = "successfully created"  ############################################# testing####
             if "successfully created" in response:
                 # Generate dbt model script for year partition table
-                script_name = f"{schema.lower()}_{year}.sql" 
+                schema_lower = schema.lower()
+                script_name = f"{schema_lower}_{year}.sql" 
                 generate_dbt_model_script(schema, year, script_name, target_location)
                 logging.info(f"dbt model script {script_name} has been created")
+
+                # Generate respective schema file for the above model script
+                col_schema = weather_schema_dict_yaml[schema]
+                generate_schema_yml(schema_lower, year, col_schema)
+                logging.info(f"dbt model schema file {schema}_{year}.yml has been created")
     
     logging.info("Process has completed")
 
@@ -160,7 +231,7 @@ if __name__ == "__main__":
         "SOLAR_RADIATION": ["SOLAR_RADIATION"]
     }
     ## For dbt data model scripts
-    weather_schema_dict_dbt = {
+    weather_schema_dict_model = {
         "EVAPO_TRANSPIRATION": ["EVAPO_TRANSPIRATION"],
         "RAIN": ["RAIN"],
         "PAN_EVAPORATION": ["PAN_EVAPORATION"],
@@ -198,6 +269,34 @@ if __name__ == "__main__":
     dbt_script_str_1 = "{{{{\n    config(\n        materialized='incremental'\n    )\n}}}}"
     dbt_script_str_2 = "\n\n{{{{\n    generate_year_partition_model(\n        \"{}\", {}\n    )\n}}}}"
     dbt_script_str = dbt_script_str_1 + dbt_script_str_2
+
+    # Define dictionary of schema-specific columns
+    weather_schema_dict_yaml = {
+        "EVAPO_TRANSPIRATION": {
+            "evapo_transpiration": "Evapo transpiration (mm)",
+        },
+        "RAIN": {
+            "rain": "Rain fall (mm)"
+        },
+        "PAN_EVAPORATION": {
+            "pan_evaporation": "Pan evaporation (mm)"
+        },
+        "TEMPERATURE": {
+            "maximum_temperature": "Maximum temperature ('C)",
+            "minimum_temperature": "Minimum temperature ('C)",
+            "variance_temperature": "Temperature variance ('C)"
+        },
+        "RELATIVE_HUMIDITY": {
+            "maximum_relative_humidity": "Maximum_relative_humidity(%)",
+            "minimum_relative_humidity": "Minimum_relative_humidity(%)"
+        },
+        "WIND_SPEED": {
+            "average_10m_wind_speed": "Average 10m wind speed (m/sec)"
+        },
+        "SOLAR_RADIATION": {
+            "solar_radiation": "Solar radiation (MJ/sq m)"
+        }
+    }
 
     try:
         main()
