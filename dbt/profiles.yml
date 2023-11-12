@@ -1,0 +1,15 @@
+weather_analysis:
+  target: prod
+  outputs:
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PWD') }}"
+      role: ACCOUNTADMIN
+      database: WEATHER_ANALYSIS
+      warehouse: COMPUTE_WH
+      schema: AGGREGATED
+      threads: 4
+      client_session_kept_alive: False
+      query-tag: dbt
