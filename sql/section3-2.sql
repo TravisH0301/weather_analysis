@@ -29,106 +29,106 @@ BOM dataset as the dataset gets updated daily, creating difference in the record
 */
 
 
-with temp_union as (
-    select record_id, station_name, date, variance_temperature from temperature.temperature_2023 
-    union
-    select record_id, station_name, date, variance_temperature from temperature.temperature_2022
-    union
-    select record_id, station_name, date, variance_temperature from temperature.temperature_2021
-    union
-    select record_id, station_name, date, variance_temperature from temperature.temperature_2020
-    union
-    select record_id, station_name, date, variance_temperature from temperature.temperature_2019
-    union
-    select record_id, station_name, date, variance_temperature from temperature.temperature_2018
-    union
-    select record_id, station_name, date, variance_temperature from temperature.temperature_2017
-    union
-    select record_id, station_name, date, variance_temperature from temperature.temperature_2016
-    union
-    select record_id, station_name, date, variance_temperature from temperature.temperature_2015
-    union
-    select record_id, station_name, date, variance_temperature from temperature.temperature_2014
-    union
-    select record_id, station_name, date, variance_temperature from temperature.temperature_2013
-    union
-    select record_id, station_name, date, variance_temperature from temperature.temperature_2012
+WITH TEMP_UNION AS (
+    SELECT RECORD_ID, STATION_NAME, DATE, VARIANCE_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2023 
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, VARIANCE_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2022
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, VARIANCE_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2021
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, VARIANCE_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2020
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, VARIANCE_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2019
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, VARIANCE_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2018
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, VARIANCE_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2017
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, VARIANCE_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2016
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, VARIANCE_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2015
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, VARIANCE_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2014
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, VARIANCE_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2013
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, VARIANCE_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2012
 ),
 
-rain_union as (
-    select record_id, station_name, date, rain from rain.rain_2023 
-    union
-    select record_id, station_name, date, rain from rain.rain_2022
-    union
-    select record_id, station_name, date, rain from rain.rain_2021
-    union
-    select record_id, station_name, date, rain from rain.rain_2020
-    union
-    select record_id, station_name, date, rain from rain.rain_2019
-    union
-    select record_id, station_name, date, rain from rain.rain_2018
-    union
-    select record_id, station_name, date, rain from rain.rain_2017
-    union
-    select record_id, station_name, date, rain from rain.rain_2016
-    union
-    select record_id, station_name, date, rain from rain.rain_2015
-    union
-    select record_id, station_name, date, rain from rain.rain_2014
-    union
-    select record_id, station_name, date, rain from rain.rain_2013
-    union
-    select record_id, station_name, date, rain from rain.rain_2012
+RAIN_UNION AS (
+    SELECT RECORD_ID, STATION_NAME, DATE, RAIN FROM RAIN.RAIN_2023 
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, RAIN FROM RAIN.RAIN_2022
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, RAIN FROM RAIN.RAIN_2021
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, RAIN FROM RAIN.RAIN_2020
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, RAIN FROM RAIN.RAIN_2019
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, RAIN FROM RAIN.RAIN_2018
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, RAIN FROM RAIN.RAIN_2017
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, RAIN FROM RAIN.RAIN_2016
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, RAIN FROM RAIN.RAIN_2015
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, RAIN FROM RAIN.RAIN_2014
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, RAIN FROM RAIN.RAIN_2013
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, RAIN FROM RAIN.RAIN_2012
 ),
 
-wind_speed_union as (
-    select record_id, station_name, date, AVERAGE_10M_WIND_SPEED from wind_speed.wind_speed_2023 
-    union
-    select record_id, station_name, date, AVERAGE_10M_WIND_SPEED from wind_speed.wind_speed_2022
-    union
-    select record_id, station_name, date, AVERAGE_10M_WIND_SPEED from wind_speed.wind_speed_2021
-    union
-    select record_id, station_name, date, AVERAGE_10M_WIND_SPEED from wind_speed.wind_speed_2020
-    union
-    select record_id, station_name, date, AVERAGE_10M_WIND_SPEED from wind_speed.wind_speed_2019
-    union
-    select record_id, station_name, date, AVERAGE_10M_WIND_SPEED from wind_speed.wind_speed_2018
-    union
-    select record_id, station_name, date, AVERAGE_10M_WIND_SPEED from wind_speed.wind_speed_2017
-    union
-    select record_id, station_name, date, AVERAGE_10M_WIND_SPEED from wind_speed.wind_speed_2016
-    union
-    select record_id, station_name, date, AVERAGE_10M_WIND_SPEED from wind_speed.wind_speed_2015
-    union
-    select record_id, station_name, date, AVERAGE_10M_WIND_SPEED from wind_speed.wind_speed_2014
-    union
-    select record_id, station_name, date, AVERAGE_10M_WIND_SPEED from wind_speed.wind_speed_2013
-    union
-    select record_id, station_name, date, AVERAGE_10M_WIND_SPEED from wind_speed.wind_speed_2012
+WIND_SPEED_UNION AS (
+    SELECT RECORD_ID, STATION_NAME, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2023 
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2022
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2021
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2020
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2019
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2018
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2017
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2016
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2015
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2014
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2013
+    UNION
+    SELECT RECORD_ID, STATION_NAME, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2012
 ),
 
-join_group as (
-    select
-        temp_union.station_name,
-        extract(year from temp_union.date) as year,
-        extract(month from temp_union.date) as month,
-        avg(variance_temperature) as avg_var_temp,
-        avg(rain) as avg_rain,
-        avg(AVERAGE_10M_WIND_SPEED) as avg_10m_wind_speed
-    from temp_union
-    left join rain_union on temp_union.record_id = rain_union.record_id
-    left join wind_speed_union on temp_union.record_id = wind_speed_union.record_id
-    where variance_temperature is not null
-    group by temp_union.station_name, year, month
+JOIN_GROUP AS (
+    SELECT
+        TEMP_UNION.STATION_NAME,
+        EXTRACT(YEAR FROM TEMP_UNION.DATE) AS YEAR,
+        EXTRACT(MONTH FROM TEMP_UNION.DATE) AS MONTH,
+        AVG(VARIANCE_TEMPERATURE) AS AVG_VAR_TEMP,
+        AVG(RAIN) AS AVG_RAIN,
+        AVG(AVERAGE_10M_WIND_SPEED) AS AVG_10M_WIND_SPEED
+    FROM TEMP_UNION
+    LEFT JOIN RAIN_UNION ON TEMP_UNION.RECORD_ID = RAIN_UNION.RECORD_ID
+    LEFT JOIN WIND_SPEED_UNION ON TEMP_UNION.RECORD_ID = WIND_SPEED_UNION.RECORD_ID
+    WHERE VARIANCE_TEMPERATURE IS NOT NULL
+    GROUP BY TEMP_UNION.STATION_NAME, YEAR, MONTH
 )
 
-select
-    station_name,
-    year,
-    month,
-    avg_var_temp,
-    avg_rain,
-    avg_10m_wind_speed
-from join_group
-order by avg_var_temp desc
-limit 1;
+SELECT
+    STATION_NAME,
+    YEAR,
+    MONTH,
+    AVG_VAR_TEMP,
+    AVG_RAIN,
+    AVG_10M_WIND_SPEED
+FROM JOIN_GROUP
+ORDER BY AVG_VAR_TEMP DESC
+LIMIT 1;

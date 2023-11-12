@@ -25,37 +25,37 @@ BOM dataset as the dataset gets updated daily, creating difference in the record
 *****
 */
 
-with union_cte as (
-    select station_name, date, maximum_temperature from temperature_2023 
-    union
-    select station_name, date, maximum_temperature from temperature_2022
-    union
-    select station_name, date, maximum_temperature from temperature_2021
-    union
-    select station_name, date, maximum_temperature from temperature_2020
-    union
-    select station_name, date, maximum_temperature from temperature_2019
-    union
-    select station_name, date, maximum_temperature from temperature_2018
-    union
-    select station_name, date, maximum_temperature from temperature_2017
-    union
-    select station_name, date, maximum_temperature from temperature_2016
-    union
-    select station_name, date, maximum_temperature from temperature_2015
-    union
-    select station_name, date, maximum_temperature from temperature_2014
+WITH UNION_CTE AS (
+    SELECT STATION_NAME, DATE, MAXIMUM_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2023 
+    UNION
+    SELECT STATION_NAME, DATE, MAXIMUM_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2022
+    UNION
+    SELECT STATION_NAME, DATE, MAXIMUM_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2021
+    UNION
+    SELECT STATION_NAME, DATE, MAXIMUM_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2020
+    UNION
+    SELECT STATION_NAME, DATE, MAXIMUM_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2019
+    UNION
+    SELECT STATION_NAME, DATE, MAXIMUM_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2018
+    UNION
+    SELECT STATION_NAME, DATE, MAXIMUM_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2017
+    UNION
+    SELECT STATION_NAME, DATE, MAXIMUM_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2016
+    UNION
+    SELECT STATION_NAME, DATE, MAXIMUM_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2015
+    UNION
+    SELECT STATION_NAME, DATE, MAXIMUM_TEMPERATURE FROM TEMPERATURE.TEMPERATURE_2014
 )
 
-select 
-    case 
-        when station_name = 'MOORABBIN AIRPORT' then 'Bunnings Notting Hill'
-        when station_name = 'PERTH AIRPORT' then 'Kmart Belmont'
-    end as store_name,
-    extract(year from date) as year,
-    count(1) as days
-from union_cte
-where upper(station_name) in ('MOORABBIN AIRPORT', 'PERTH AIRPORT')
-    and maximum_temperature > 35
-group by station_name, year
-order by store_name, year desc;
+SELECT 
+    CASE 
+        WHEN STATION_NAME = 'MOORABBIN AIRPORT' THEN 'BUNNINGS NOTTING HILL'
+        WHEN STATION_NAME = 'PERTH AIRPORT' THEN 'KMART BELMONT'
+    END AS STORE_NAME,
+    EXTRACT(YEAR FROM DATE) AS YEAR,
+    COUNT(1) AS DAYS
+FROM UNION_CTE
+WHERE UPPER(STATION_NAME) IN ('MOORABBIN AIRPORT', 'PERTH AIRPORT')
+    AND MAXIMUM_TEMPERATURE > 35
+GROUP BY STATION_NAME, YEAR
+ORDER BY STORE_NAME, YEAR DESC;
