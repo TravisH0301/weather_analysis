@@ -173,7 +173,7 @@ def pre_process_fwf(file_obj, file_date):
         "STATION_ID",
         "STATE",
         "DISTRICT_CODE",
-        "STATIONS_NAME",
+        "STATION_NAME",
         "STATION_SINCE",
         "LATITUDE",
         "LONGITUDE"
@@ -337,7 +337,7 @@ if __name__ == "__main__":
             STATION_ID VARCHAR(6),
             STATE VARCHAR(3),
             DISTRICT_CODE VARCHAR(5),
-            STATIONS_NAME VARCHAR(40),
+            STATION_NAME VARCHAR(40),
             STATION_SINCE DATE,
             LATITUDE FLOAT,
             LONGITUDE FLOAT
