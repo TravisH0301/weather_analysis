@@ -10,7 +10,6 @@
 import os
 import io
 import tarfile
-import logging
 from datetime import datetime
 import pytz
 import pandas as pd
@@ -19,6 +18,7 @@ import numpy as np
 import boto3
 import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
+from airflow.utils.log.logging_mixin import LoggingMixin
 
 
 def find_latest_file(s3_client, bucket_name):
@@ -197,10 +197,10 @@ def pre_process_fwf(file_obj):
 
 
 def main():
-    logging.info("Process has started")
+    LoggingMixin().log.info("Process has started")
 
     # Load latest compressed file as byte stream object
-    logging.info("Retrieving latest compressed file...")
+    LoggingMixin().log.info("Retrieving latest compressed file...")
     latest_file_name = find_latest_file(s3, bucket_name)
     latest_file = io.BytesIO()
     s3.download_fileobj(
@@ -208,20 +208,20 @@ def main():
         Key=latest_file_name,
         Fileobj=latest_file
     )
-    logging.info("Compressed file has been retrieved")
+    LoggingMixin().log.info("Compressed file has been retrieved")
 
     # Create Snowflake tables if not existing
-    logging.info("Creating Snowflake tables...")
+    LoggingMixin().log.info("Creating Snowflake tables...")
     ## Weather dataset
     cur.execute(query_create_tgt_weather)
     cur.execute(query_create_temp_table.format(table_temp_weather, table_tgt_weather))
     ## Station dataset
     cur.execute(query_create_tgt_station)
     cur.execute(query_create_temp_table.format(table_temp_station, table_tgt_station))
-    logging.info("Snowflake tables have been created")
+    LoggingMixin().log.info("Snowflake tables have been created")
 
     # Pre-process weather and station datasets from byte stream object
-    logging.info("Pre-processing weather and station datasets...")
+    LoggingMixin().log.info("Pre-processing weather and station datasets...")
     latest_file.seek(0)
     df_weather_li = []
     with tarfile.open(fileobj=latest_file) as tar_file:
@@ -243,13 +243,13 @@ def main():
                 # Convert fwf text file object to dataframe
                 fwf_obj = tar_file.extractfile(member)
                 df_station = pre_process_fwf(fwf_obj)  
-    logging.info("Datasets have been pre-processed")
+    LoggingMixin().log.info("Datasets have been pre-processed")
 
     # Load pre-processed datasets into Snowflake staging schema
     """The use of temp tables and merge statements ensures
     the idempotency of this process.
     """
-    logging.info("Loading datasets into Snowflake staging schema...")
+    LoggingMixin().log.info("Loading datasets into Snowflake staging schema...")
     ## Weather dataset 
     ### Combine weather datasets and load into temp weather table
     df_weather_combine = pd.concat(df_weather_li, ignore_index=True)
@@ -262,21 +262,12 @@ def main():
     write_pandas(conn, df_station, table_temp_station)
     ### Merge from temp station table to target station table
     cur.execute(query_merge_station)
-    logging.info("Datasets have been loaded to Snowflake")
+    LoggingMixin().log.info("Datasets have been loaded to Snowflake")
 
-    logging.info("Process has completed")
+    LoggingMixin().log.info("Process has completed")
 
 
 if __name__ == "__main__":
-    # Define logger
-    logging.basicConfig(
-        filename = "/opt/airflow/logs/stage_data_log.txt",
-        filemode="w",
-        level=logging.INFO,
-        format = "%(asctime)s; %(levelname)s; %(message)s",
-        datefmt="%m/%d/%Y %I:%M:%S %p %Z"
-    )
-
     # Define date variables
     melb_tz = pytz.timezone("Australia/Melbourne")
     datetime_now = datetime.now(melb_tz)
@@ -415,10 +406,9 @@ if __name__ == "__main__":
     """
 
     try:
+        # Start process
         main()
-    except Exception:
-        logging.error("Process has failed:", exc_info=True)
-        raise
     finally:
+        # Close cursor and connection
         cur.close()
         conn.close()
