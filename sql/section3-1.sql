@@ -1,3 +1,13 @@
+/*
+This query finds the number of days that were above 35 degrees at 
+Bunnings Notting Hill and Kmart Belmont in each of the last 9 years.
+
+The nearest weather stations from these stores were determined by
+calculating the Euclidean distance between cooridnate points as 
+illustrated in `find_nearest_weather_station.sql`.
+This flat plane approach was used given the points are all in the same states.
+*/
+
 with union_cte as (
     select station_name, date, maximum_temperature from temperature_2023 
     union

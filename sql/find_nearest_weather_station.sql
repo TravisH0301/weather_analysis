@@ -1,5 +1,5 @@
 /*
-Query to find the nearest weather stations from Bunnings Notting Hill
+This query finds the nearest weather stations from Bunnings Notting Hill
 and Kmart Belmont.
 Note that Euclidean distance is calculated given points are within the
 same state.
