@@ -1,6 +1,6 @@
 dbt-env
 logs
-todo
+todo.txt
 .user.yml
 log/*.txt
 *.pdf
