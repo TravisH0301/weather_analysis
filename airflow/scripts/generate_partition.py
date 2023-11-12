@@ -97,6 +97,7 @@ def main():
             cur.execute(query_create_year_partition.format(schema, year, cols_query_str))
             response = cur.fetchall()[0][0]
             logging.info(response)
+            
             if "successfully created" in response:
                 # Generate dbt model script for year partition table
                 script_name = f"{schema.lower()}_{year}.sql" 
@@ -159,7 +160,7 @@ if __name__ == "__main__":
     # Define dbt data model script
     target_location = "./dbt/models/{}/{}"
     dbt_script_str_1 = "{{{{\n    config(\n        materialized='incremental'\n    )\n}}}}"
-    dbt_script_str_2 = "\n{{{{\n    generate_year_partition_model(\n        \"{}\"\n    )\n}}}}"
+    dbt_script_str_2 = "\n\n{{{{\n    generate_year_partition_model(\n        \"{}\"\n    )\n}}}}"
     dbt_script_str = dbt_script_str_1 + dbt_script_str_2
 
     try:
