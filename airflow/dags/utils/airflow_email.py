@@ -1,3 +1,11 @@
+###############################################################################
+# Name: airflow_email.py
+# Description: This module contains class AirflowEmailSender to allow Airflow
+#              DAG to send an alert upon completion or failure as a callback
+#              function.
+# Author: Travis Hong
+# Repository: https://github.com/TravisH0301/weather_analysis
+###############################################################################
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
