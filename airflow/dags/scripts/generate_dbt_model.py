@@ -5,8 +5,8 @@
 #              staging schema:
 #              - Year partition table for weather measurement schemas 
 #                (e.g., rain_2023)
-#              - dbt data model for the created partition table
-#                (e.g., rain_2023.sql)
+#              - dbt data model & schema file for the created partition table
+#                (e.g., rain_2023.sql, rain_2023.yml)
 #              This script allows the dataset to grow incrementally without
 #              having to manually create new table nor dbt data model.
 # Author: Travis Hong
@@ -162,7 +162,8 @@ def main():
     logging.info("Years have been fetched")
 
     # For each weather schema, create year partition tables if not existing
-    # and generate dbt model scripts for the created year partition tables
+    # and generate dbt model scripts & respective schema files for the 
+    # created year partition tables
     logging.info("Creating year partition tables & dbt model scripts for weather schemas...")
     for schema, cols in weather_schema_dict_table.items():
         cols_query_str = make_col_query_str(cols, purpose="year_partition_table")
@@ -171,7 +172,7 @@ def main():
             cur.execute(query_create_year_partition.format(schema, year, cols_query_str))
             response = cur.fetchall()[0][0]
             logging.info(response)
-            response = "successfully created"  ############################################# testing####
+
             if "successfully created" in response:
                 # Generate dbt model script for year partition table
                 schema_lower = schema.lower()
