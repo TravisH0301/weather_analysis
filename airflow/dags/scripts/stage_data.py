@@ -253,6 +253,7 @@ def main():
     ## Weather dataset 
     ### Combine weather datasets and load into temp weather table
     df_weather_combine = pd.concat(df_weather_li, ignore_index=True)
+    df_weather_combine = df_weather_combine.drop_duplicates()
     write_pandas(conn, df_weather_combine, table_temp_weather)
     ### Merge from temp weather table to target weather table
     cur.execute(query_merge_weather)
