@@ -25,7 +25,6 @@ select
         when station_name = 'MOORABBIN AIRPORT' then 'Bunnings Notting Hill'
         when station_name = 'PERTH AIRPORT' then 'Kmart Belmont'
     end as store_name,
-    station_name,
     extract(year from date) as year,
     count(1) as days
 from union_cte
