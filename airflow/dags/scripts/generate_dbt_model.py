@@ -173,6 +173,7 @@ def main():
             response = cur.fetchall()[0][0]
             LoggingMixin().log.info(response)
 
+            # Only generate dbt objects when new year partition table is created
             if "successfully created" in response:
                 # Generate dbt model script for year partition table
                 schema_lower = schema.lower()
@@ -206,6 +207,9 @@ if __name__ == "__main__":
 
     # Define Snowflake weather measurement schemas and their attributes
     ## For year partition tables
+    """
+    E.g., { Weather schema: Attributes of respective year partition table }
+    """
     weather_schema_dict_table = {
         "EVAPO_TRANSPIRATION": ["EVAPO_TRANSPIRATION"],
         "RAIN": ["RAIN"],
@@ -223,6 +227,10 @@ if __name__ == "__main__":
         "SOLAR_RADIATION": ["SOLAR_RADIATION"]
     }
     ## For dbt data model scripts
+    """
+    E.g., { Weather schema: Partial query to model the attributes 
+                            of the respective year partition table }
+    """
     weather_schema_dict_model = {
         "EVAPO_TRANSPIRATION": ["EVAPO_TRANSPIRATION"],
         "RAIN": ["RAIN"],
@@ -257,12 +265,18 @@ if __name__ == "__main__":
     """
 
     # Define dbt data model script
+    """
+    This script uses macro to generate a data model for year partition tables with
+    the passed year and schema-specific attributes.
+    """
     target_location = "/opt/airflow/dags/dbt/models/{}/{}"
     dbt_script_str_1 = "{{{{\n    config(\n        materialized='incremental'\n    )\n}}}}"
     dbt_script_str_2 = "\n\n{{{{\n    generate_year_partition_model_macro(\n        \"{}\", {}\n    )\n}}}}"
     dbt_script_str = dbt_script_str_1 + dbt_script_str_2
 
     # Define dictionary of schema-specific columns
+    """
+    """
     weather_schema_dict_yaml = {
         "EVAPO_TRANSPIRATION": {
             "evapo_transpiration": "Evapo transpiration (mm)",
