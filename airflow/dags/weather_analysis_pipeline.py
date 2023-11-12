@@ -57,7 +57,7 @@ with DAG(
     # Task to load data into data model incrementally in Snowflake
     incremental_data_load = BashOperator(
         task_id="incremental_data_load",
-        bash_command="cd /opt/airflow/dags/dbt; dbt build",
+        bash_command="cd /opt/airflow/dags/dbt; dbt clean; dbt deps; dbt build",
         dag=dag
     )
 
