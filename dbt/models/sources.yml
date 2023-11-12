@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: staging
+    database: WEATHER_ANALYSIS
+    schema: STAGING
+    tables:
+      - name: weather_preprocessed
+        identifier: weather_preprocessed
+      - name: station_preprocessed
+        identifier: station_preprocessed
