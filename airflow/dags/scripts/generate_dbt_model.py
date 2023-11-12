@@ -14,9 +14,9 @@
 ###############################################################################
 import os
 import yaml
-import logging
 
 import snowflake.connector
+from airflow.utils.log.logging_mixin import LoggingMixin
 
 
 def make_col_query_str(cols, purpose):
@@ -152,52 +152,43 @@ def generate_schema_yml(schema, year, col_schema):
 
 
 def main():
-    logging.info("Process has started")
+    LoggingMixin().log.info("Process has started")
 
     # Fetch years from preprocessed weather table in staging schema
-    logging.info("Fetching years from preprocessed weather table...")
+    LoggingMixin().log.info("Fetching years from preprocessed weather table...")
     cur.execute(query_fetch_weather_years)
     result = cur.fetchall()
     year_li = [year[0] for year in result]
-    logging.info("Years have been fetched")
+    LoggingMixin().log.info("Years have been fetched")
 
     # For each weather schema, create year partition tables if not existing
     # and generate dbt model scripts & respective schema files for the 
     # created year partition tables
-    logging.info("Creating year partition tables & dbt model scripts for weather schemas...")
+    LoggingMixin().log.info("Creating year partition tables & dbt model scripts for weather schemas...")
     for schema, cols in weather_schema_dict_table.items():
         cols_query_str = make_col_query_str(cols, purpose="year_partition_table")
         for year in year_li:
             # Create year partition table
             cur.execute(query_create_year_partition.format(schema, year, cols_query_str))
             response = cur.fetchall()[0][0]
-            logging.info(response)
+            LoggingMixin().log.info(response)
 
             if "successfully created" in response:
                 # Generate dbt model script for year partition table
                 schema_lower = schema.lower()
                 script_name = f"{schema_lower}_{year}.sql" 
                 generate_dbt_model_script(schema, year, script_name, target_location)
-                logging.info(f"dbt model script {script_name} has been created")
+                LoggingMixin().log.info(f"dbt model script {script_name} has been created")
 
                 # Generate respective schema file for the above model script
                 col_schema = weather_schema_dict_yaml[schema]
                 generate_schema_yml(schema_lower, year, col_schema)
-                logging.info(f"dbt model schema file {schema}_{year}.yml has been created")
+                LoggingMixin().log.info(f"dbt model schema file {schema}_{year}.yml has been created")
     
-    logging.info("Process has completed")
+    LoggingMixin().log.info("Process has completed")
 
 
 if __name__ == "__main__":
-    # Define logger
-    logging.basicConfig(
-        filename = "/opt/airflow/logs/generate_partition_log.txt",
-        filemode="w",
-        level=logging.INFO,
-        format = "%(asctime)s; %(levelname)s; %(message)s",
-        datefmt="%m/%d/%Y %I:%M:%S %p %Z"
-    )
-
     # Define Snowflake connection
     snowflake_user = os.environ["SNOWFLAKE_USER"]
     snowflake_pwd = os.environ["SNOWFLAKE_PWD"]
@@ -300,10 +291,9 @@ if __name__ == "__main__":
     }
 
     try:
+        # Start process
         main()
-    except Exception:
-        logging.error("Process has failed:", exc_info=True)
-        raise
     finally:
+        # Close cursor and connection
         cur.close()
         conn.close()
