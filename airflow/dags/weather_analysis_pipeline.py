@@ -34,21 +34,21 @@ with DAG(
     # Task to retrive BOM dataset and land into object storage
     land_file = BashOperator(
         task_id="land_file",
-        bash_command="python ./scripts/land_file.py",
+        bash_command="python /opt/airflow/dags/scripts/land_file.py",
         dag=dag
     )
 
     # Task to pre-process and stage weather dataset into Snowflake
     stage_data = BashOperator(
         task_id="stage_data",
-        bash_command="python ./scripts/stage_data.py",
+        bash_command="python /opt/airflow/dags/scripts/stage_data.py",
         dag=dag
     )
     
     # Task to generate dbt data model scripts for year partition tables 
     generate_dbt_model = BashOperator(
-        task_id="stage_data",
-        bash_command="python ./scripts/generate_dbt_model.py",
+        task_id="generate_dbt_model",
+        bash_command="python /opt/airflow/dags/scripts/generate_dbt_model.py",
         dag=dag
     )
 

@@ -119,7 +119,7 @@ def main():
 if __name__ == "__main__":
     # Define logger
     logging.basicConfig(
-        filename = "./log/generate_partition_log.txt",
+        filename = "/opt/airflow/logs/generate_partition_log.txt",
         filemode="w",
         level=logging.INFO,
         format = "%(asctime)s; %(levelname)s; %(message)s",

@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # Define variables
     ## Logger
     logging.basicConfig(
-        filename = "./log/land_file_log.txt",
+        filename = "/opt/airflow/logs/land_file_log.txt",
         filemode="w",
         level=logging.INFO,
         format = "%(asctime)s; %(levelname)s; %(message)s",

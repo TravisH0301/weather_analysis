@@ -269,7 +269,7 @@ def main():
 if __name__ == "__main__":
     # Define logger
     logging.basicConfig(
-        filename = "./log/stage_data_log.txt",
+        filename = "/opt/airflow/logs/stage_data_log.txt",
         filemode="w",
         level=logging.INFO,
         format = "%(asctime)s; %(levelname)s; %(message)s",
