@@ -3,5 +3,8 @@
         materialized='incremental'
     )
 }
-
-{ generate_pan_evaporation_model(2017) }
+{
+    generate_year_parition_model(
+        "PAN_EVAPORATION, "
+    )
+}

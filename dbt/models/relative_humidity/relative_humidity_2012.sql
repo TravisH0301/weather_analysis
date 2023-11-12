@@ -3,5 +3,8 @@
         materialized='incremental'
     )
 }
-
-{ generate_relative_humidity_model(2012) }
+{
+    generate_year_parition_model(
+        "MAX_RELATIVE_HUMIDITY, MIN_RELATIVE_HUMIDITY, "
+    )
+}

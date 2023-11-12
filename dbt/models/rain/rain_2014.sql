@@ -3,5 +3,8 @@
         materialized='incremental'
     )
 }
-
-{ generate_rain_model(2014) }
+{
+    generate_year_parition_model(
+        "RAIN, "
+    )
+}

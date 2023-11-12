@@ -3,5 +3,8 @@
         materialized='incremental'
     )
 }
-
-{ generate_evapo_transpiration_model(2016) }
+{
+    generate_year_parition_model(
+        "EVAPO_TRANSPIRATION, "
+    )
+}

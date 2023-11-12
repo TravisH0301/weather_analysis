@@ -3,5 +3,8 @@
         materialized='incremental'
     )
 }
-
-{ generate_solar_radiation_model(2021) }
+{
+    generate_year_parition_model(
+        "SOLAR_RADIATION, "
+    )
+}

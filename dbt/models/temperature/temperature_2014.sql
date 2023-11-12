@@ -3,5 +3,8 @@
         materialized='incremental'
     )
 }
-
-{ generate_temperature_model(2014) }
+{
+    generate_year_parition_model(
+        "MAX_TEMPERATURE, MIN_TEMPERATURE, "
+    )
+}
