@@ -31,8 +31,30 @@ with DAG(
     }
 ) as dag:
     
-    run_this = BashOperator(
-        task_id="first_job",
-        bash_command="echo 1",
+    # Task to retrive BOM dataset and land into object storage
+    land_file = BashOperator(
+        task_id="land_file",
+        bash_command="python ./scripts/land_file.py",
         dag=dag
+    )
+
+    # Task to pre-process and stage weather dataset into Snowflake
+    stage_data = BashOperator(
+        task_id="stage_data",
+        bash_command="python ./scripts/stage_data.py",
+        dag=dag
+    )
+    
+    # Task to generate dbt data model scripts for year partition tables 
+    generate_dbt_model = BashOperator(
+        task_id="stage_data",
+        bash_command="python ./scripts/generate_dbt_model.py",
+        dag=dag
+    )
+
+    # Define task dependecies
+    (
+        land_file
+        >> stage_data
+        >> generate_dbt_model
     )
