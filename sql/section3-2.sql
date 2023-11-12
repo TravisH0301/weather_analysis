@@ -131,4 +131,4 @@ select
     avg_10m_wind_speed
 from join_group
 order by avg_var_temp desc
-limit 5;
+limit 1;
