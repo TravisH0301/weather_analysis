@@ -3,7 +3,7 @@ This macro generates a year partition data model by receiving required
 attributes and year for the table.
 */
 
-{% macro generate_year_partition_model(attributes, year) %}
+{% macro generate_year_partition_model_macro(attributes, year) %}
 
 select distinct
     station_name || '_' || to_varchar(date, 'yyyymmdd') as record_id,
