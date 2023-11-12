@@ -212,8 +212,12 @@ def main():
 
     # Create Snowflake tables if not existing
     logging.info("Creating Snowflake tables...")
+    ## Weather dataset
     cur.execute(query_create_tgt_weather)
+    cur.execute(query_create_temp_table.format(table_temp_weather, table_tgt_weather))
+    ## Station dataset
     cur.execute(query_create_tgt_station)
+    cur.execute(query_create_temp_table.format(table_temp_station, table_tgt_station))
     logging.info("Snowflake tables have been created")
 
     # Pre-process weather and station datasets from byte stream object
@@ -242,12 +246,21 @@ def main():
     logging.info("Datasets have been pre-processed")
 
     # Load pre-processed datasets into Snowflake staging schema
+    """The use of temp tables and merge statements ensures
+    the idempotency of this process.
+    """
     logging.info("Loading datasets into Snowflake staging schema...")
-    ## Combine weather datasets and load into target table
+    ## Weather dataset 
+    ### Combine weather datasets and load into temp weather table
     df_weather_combine = pd.concat(df_weather_li, ignore_index=True)
-    write_pandas(conn, df_weather_combine, table_tgt_weather)
-    ## Load station dataset into target table
-    write_pandas(conn, df_station, table_tgt_station)
+    write_pandas(conn, df_weather_combine, table_temp_weather)
+    ### Merge from temp weather table to target weather table
+    cur.execute(query_merge_weather)
+    ## State dataset
+    ### Load station dataset into temp station table
+    write_pandas(conn, df_station, table_temp_station)
+    ### Merge from temp station table to target station table
+    cur.execute(query_merge_station)
     logging.info("Datasets have been loaded to Snowflake")
 
     logging.info("Process has completed")
@@ -300,10 +313,15 @@ if __name__ == "__main__":
     # Define Snowflake tables
     ## Weather dataset
     table_tgt_weather = "WEATHER_PREPROCESSED"
+    table_temp_weather = "WEATHER_PREPROCESSED_TEMP"
     ## Station dataset
     table_tgt_station = "STATION_PREPROCESSED"
+    table_temp_station = "STATION_PREPROCESSED_TEMP"
 
     # Define Snowflake queries
+    query_create_temp_table = """
+        CREATE TEMPORARY TABLE {} AS {}
+    """
     ## Weather dataset
     query_create_tgt_weather = f"""
         CREATE TABLE IF NOT EXISTS {table_tgt_weather} (
@@ -322,6 +340,41 @@ if __name__ == "__main__":
             LOAD_DATE DATE
         );
     """
+    query_merge_weather = f"""
+        MERGE INTO {table_tgt_weather} AS TARGET 
+        USING {table_temp_weather} AS SOURCE
+            ON TARGET.STATION_NAME = SOURCE.STATION_NAME
+                AND TARGET.DATE = SOURCE.DATE
+            WHEN NOT MATCHED THEN INSERT (
+                STATION_NAME,
+                DATE,
+                EVAPO_TRANSPIRATION,
+                RAIN,
+                PAN_EVAPORATION,
+                MAXIMUM_TEMPERATURE,
+                MINIMUM_TEMPERATURE,
+                MAXIMUM_RELATIVE_HUMIDITY,
+                MINIMUM_RELATIVE_HUMIDITY,
+                AVERAGE_10M_WIND_SPEED,
+                SOLAR_RADIATION,
+                STATE,
+                LOAD_DATE
+            ) VALUES (
+                SOURCE.STATION_NAME,
+                SOURCE.DATE,
+                SOURCE.EVAPO_TRANSPIRATION,
+                SOURCE.RAIN,
+                SOURCE.PAN_EVAPORATION,
+                SOURCE.MAXIMUM_TEMPERATURE,
+                SOURCE.MINIMUM_TEMPERATURE,
+                SOURCE.MAXIMUM_RELATIVE_HUMIDITY,
+                SOURCE.MINIMUM_RELATIVE_HUMIDITY,
+                SOURCE.AVERAGE_10M_WIND_SPEED,
+                SOURCE.SOLAR_RADIATION,
+                SOURCE.STATE,
+                SOURCE.LOAD_DATE
+            );
+    """
     ## Station dataset
     query_create_tgt_station = f"""
         CREATE TABLE IF NOT EXISTS {table_tgt_station} (
@@ -334,6 +387,30 @@ if __name__ == "__main__":
             LONGITUDE FLOAT,
             LOAD_DATE DATE
         );
+    """
+    query_merge_station = f"""
+        MERGE INTO {table_tgt_station} AS TARGET 
+        USING {table_temp_station} AS SOURCE
+            ON TARGET.STATION_ID = SOURCE.STATION_ID
+            WHEN NOT MATCHED THEN INSERT (
+                STATION_ID,
+                STATE,
+                DISTRICT_CODE,
+                STATION_NAME,
+                STATION_SINCE,
+                LATITUDE,
+                LONGITUDE,
+                LOAD_DATE
+            ) VALUES (
+                SOURCE.STATION_ID,
+                SOURCE.STATE,
+                SOURCE.DISTRICT_CODE,
+                SOURCE.STATION_NAME,
+                SOURCE.STATION_SINCE,
+                SOURCE.LATITUDE,
+                SOURCE.LONGITUDE,
+                SOURCE.LOAD_DATE
+            );
     """
 
     try:
