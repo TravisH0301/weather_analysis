@@ -38,7 +38,7 @@ def make_col_query_str(cols, purpose):
     cols: list
         List of columns to be added in the query.
     purpose: str
-        Purpose for ethier year_partition_table or dbt_model_script
+        Purpose for ethier "year_partition_table" or "dbt_model_script"
 
     Returns
     -------
@@ -66,6 +66,8 @@ def generate_dbt_model_script(schema, year, script_name, target_location):
         Name of schema.
     year: int/str
         Year for partition table.
+    script_name: str
+        Name of dbt script.
     target_location: str
         Location for dbt data model script.
     """
@@ -74,7 +76,7 @@ def generate_dbt_model_script(schema, year, script_name, target_location):
     attribute_query_str = make_col_query_str(attribute_li, purpose="dbt_model_script")
 
     with open(target_location.format(schema_lower, script_name), "w") as f:
-        f.write(dbt_script_str.format(attribute_query_str))
+        f.write(dbt_script_str.format(attribute_query_str, year))
 
 
 def main():
@@ -162,7 +164,7 @@ if __name__ == "__main__":
     # Define dbt data model script
     target_location = "./dbt/models/{}/{}"
     dbt_script_str_1 = "{{{{\n    config(\n        materialized='incremental'\n    )\n}}}}"
-    dbt_script_str_2 = "\n\n{{{{\n    generate_year_partition_model(\n        \"{}\"\n    )\n}}}}"
+    dbt_script_str_2 = "\n\n{{{{\n    generate_year_partition_model(\n        \"{}\", {}\n    )\n}}}}"
     dbt_script_str = dbt_script_str_1 + dbt_script_str_2
 
     try:
