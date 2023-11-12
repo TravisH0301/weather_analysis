@@ -15,12 +15,11 @@ select distinct
 from {{ source("staging", "weather_preprocessed") }} as source
 where extract(year from date) = {{ year }}
 {% if is_incremental() %}
-where extract(year from date) = {{ year }}
     and not exists (
-    select 1
-    from {{ this }}
-    where (source.station_name || '_' || to_varchar(source.date, 'yyyymmdd')) = record_id
-)
+        select 1
+        from {{ this }}
+        where (source.station_name || '_' || to_varchar(source.date, 'yyyymmdd')) = record_id
+    )
 {% endif %}
 
 {% endmacro %}
