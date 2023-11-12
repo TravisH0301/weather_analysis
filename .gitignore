@@ -2,6 +2,7 @@ dbt-env
 logs
 todo.txt
 .user.yml
+.env
 log/*.txt
 __pycache__/
 *.pdf
