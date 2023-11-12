@@ -23,13 +23,15 @@ def make_col_query_str(cols, purpose):
     This function serves two purposes.
     1. Returning a partial query string that contains
     given columns and their data type.
-    E.g., "MAXIMUM_TEMPERATURE FLOAT, MINIMUM_TEMPERATURE FLAT, "
+    E.g., Input: ["MAXIMUM_TEMPERATURE", "MINIMUM_TEMPERATURE"]
+          Output: "MAXIMUM_TEMPERATURE FLOAT, MINIMUM_TEMPERATURE FLAT, "
     This goes into the variable `query_create_year_partition` for
     creating year partition tables for each weather measurement schemas.
     
     2. Returning a partial dbt model script query that
     contains given columns.
-    E.g., "MAXIMUM_TEMPERATURE, MINIMUM_TEMPERATURE, "
+    E.g., Input: ["MAXIMUM_TEMPERATURE", "MINIMUM_TEMPERATURE"]
+          Output: "MAXIMUM_TEMPERATURE, MINIMUM_TEMPERATURE, "
     This goes into the variable `dbt_script_str` for
     generating dbt data model scripts for the created year partition tables.
     
@@ -72,7 +74,7 @@ def generate_dbt_model_script(schema, year, script_name, target_location):
         Location for dbt data model script.
     """
     schema_lower = schema.lower()
-    attribute_li = weather_schema_dict[schema]
+    attribute_li = weather_schema_dict_dbt[schema]
     attribute_query_str = make_col_query_str(attribute_li, purpose="dbt_model_script")
 
     with open(target_location.format(schema_lower, script_name), "w") as f:
@@ -92,7 +94,7 @@ def main():
     # For each weather schema, create year partition tables if not existing
     # and generate dbt model scripts for the created year partition tables
     logging.info("Creating year partition tables & dbt model scripts for weather schemas...")
-    for schema, cols in weather_schema_dict.items():
+    for schema, cols in weather_schema_dict_table.items():
         cols_query_str = make_col_query_str(cols, purpose="year_partition_table")
         for year in year_li:
             # Create year partition table
@@ -135,12 +137,37 @@ if __name__ == "__main__":
     cur = conn.cursor()
 
     # Define Snowflake weather measurement schemas and their attributes
-    weather_schema_dict = {
+    ## For year partition tables
+    weather_schema_dict_table = {
         "EVAPO_TRANSPIRATION": ["EVAPO_TRANSPIRATION"],
         "RAIN": ["RAIN"],
         "PAN_EVAPORATION": ["PAN_EVAPORATION"],
-        "TEMPERATURE": ["MAXIMUM_TEMPERATURE", "MINIMUM_TEMPERATURE"],
-        "RELATIVE_HUMIDITY": ["MAXIMUM_RELATIVE_HUMIDITY", "MINIMUM_RELATIVE_HUMIDITY"],
+        "TEMPERATURE": [
+            "MAXIMUM_TEMPERATURE",
+            "MINIMUM_TEMPERATURE",
+            "VARIANCE_TEMPERATURE"
+        ],
+        "RELATIVE_HUMIDITY": [
+            "MAXIMUM_RELATIVE_HUMIDITY",
+            "MINIMUM_RELATIVE_HUMIDITY"
+        ],
+        "WIND_SPEED": ["AVERAGE_10M_WIND_SPEED"],
+        "SOLAR_RADIATION": ["SOLAR_RADIATION"]
+    }
+    ## For dbt data model scripts
+    weather_schema_dict_dbt = {
+        "EVAPO_TRANSPIRATION": ["EVAPO_TRANSPIRATION"],
+        "RAIN": ["RAIN"],
+        "PAN_EVAPORATION": ["PAN_EVAPORATION"],
+        "TEMPERATURE": [
+            "MAXIMUM_TEMPERATURE",
+            "MAXIMUM_TEMPERATURE",
+            "MAXIMUM_TEMPERATURE - MAXIMUM_TEMPERATURE AS VARIANCE_TEMPERATURE"
+        ],
+        "RELATIVE_HUMIDITY": [
+            "MAXIMUM_RELATIVE_HUMIDITY",
+            "MINIMUM_RELATIVE_HUMIDITY"
+        ],
         "WIND_SPEED": ["AVERAGE_10M_WIND_SPEED"],
         "SOLAR_RADIATION": ["SOLAR_RADIATION"]
     }
