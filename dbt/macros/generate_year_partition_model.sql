@@ -1,6 +1,6 @@
 /*
 This macro generates a year partition data model by receiving required 
-attributes for the table. E.g., RAIN for RAIN_YYYY table.
+attributes and year for the table.
 */
 
 {% macro generate_year_partition_model(attributes, year) %}
