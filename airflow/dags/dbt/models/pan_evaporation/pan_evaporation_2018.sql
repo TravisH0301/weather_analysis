@@ -5,7 +5,7 @@
 }}
 
 {{
-    generate_year_partition_model(
+    generate_year_partition_model_macro(
         "PAN_EVAPORATION, ", 2018
     )
 }}

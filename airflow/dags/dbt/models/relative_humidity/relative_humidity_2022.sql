@@ -5,7 +5,7 @@
 }}
 
 {{
-    generate_year_partition_model(
+    generate_year_partition_model_macro(
         "MAXIMUM_RELATIVE_HUMIDITY, MINIMUM_RELATIVE_HUMIDITY, ", 2022
     )
 }}
