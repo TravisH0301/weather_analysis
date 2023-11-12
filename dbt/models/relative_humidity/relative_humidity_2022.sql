@@ -6,6 +6,6 @@
 
 {{
     generate_year_partition_model(
-        "MAX_RELATIVE_HUMIDITY, MIN_RELATIVE_HUMIDITY, "
+        "MAXIMUM_RELATIVE_HUMIDITY, MINIMUM_RELATIVE_HUMIDITY, "
     )
 }}
