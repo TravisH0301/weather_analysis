@@ -18,17 +18,27 @@ import logging
 import snowflake.connector
 
 
-def make_col_query_str(cols):
+def make_col_query_str(cols, purpose):
     """
-    This function returns a query string that contains
+    This function serves two purposes.
+    1. Returning a partial query string that contains
     given columns and their data type.
-    This is to be used in the query for creating year
-    partition tables for each weather measurement schemas.
+    E.g., "MAXIMUM_TEMPERATURE FLOAT, MINIMUM_TEMPERATURE FLAT, "
+    This goes into the variable `query_create_year_partition` for
+    creating year partition tables for each weather measurement schemas.
+    
+    2. Returning a partial dbt model script query that
+    contains given columns.
+    E.g., "MAXIMUM_TEMPERATURE, MINIMUM_TEMPERATURE, "
+    This goes into the variable `dbt_script_str` for
+    generating dbt data model scripts for the created year partition tables.
     
     Parameters
     ----------
     cols: list
         List of columns to be added in the query.
+    purpose: str
+        Purpose for ethier year_partition_table or dbt_model_script
 
     Returns
     -------
@@ -37,7 +47,10 @@ def make_col_query_str(cols):
     """
     query_str = ""
     for col in cols:
-        query_str += col + " FLOAT, "
+        if purpose == "year_partition_table":
+            query_str += col + " FLOAT, "
+        elif purpose == "dbt_model_script":
+            query_str += col +", "
     return query_str
 
 
@@ -57,8 +70,11 @@ def generate_dbt_model_script(schema, year, script_name, target_location):
         Location for dbt data model script.
     """
     schema_lower = schema.lower()
+    attribute_li = weather_schema_dict[schema]
+    attribute_query_str = make_col_query_str(attribute_li, purpose="dbt_model_script")
+
     with open(target_location.format(schema_lower, script_name), "w") as f:
-        f.write(dbt_script_str.format(schema_lower, year))
+        f.write(dbt_script_str.format(attribute_query_str))
 
 
 def main():
@@ -75,13 +91,13 @@ def main():
     # and generate dbt model scripts for the created year partition tables
     logging.info("Creating year partition tables & dbt model scripts for weather schemas...")
     for schema, cols in weather_schema_dict.items():
-        cols_query_str = make_col_query_str(cols)
+        cols_query_str = make_col_query_str(cols, purpose="year_partition_table")
         for year in year_li:
             # Create year partition table
             cur.execute(query_create_year_partition.format(schema, year, cols_query_str))
             response = cur.fetchall()[0][0]
             logging.info(response)
-
+            response = "successfully created" ######################################## testing
             if "successfully created" in response:
                 # Generate dbt model script for year partition table
                 script_name = f"{schema.lower()}_{year}.sql" 
@@ -143,8 +159,10 @@ if __name__ == "__main__":
 
     # Define dbt data model script
     target_location = "./dbt/models/{}/{}"
-    dbt_script_str = "{{\n    config(\n        materialized='incremental'\n    )\n}}\n\n{{ generate_{}_model({}) }}"
-    
+    dbt_script_str_1 = "{{\n    config(\n        materialized='incremental'\n    )\n}}"
+    dbt_script_str_2 = "\n{{\n    generate_year_parition_model(\n        \"{}\"\n    )\n}}"
+    dbt_script_str = dbt_script_str_1 + dbt_script_str_2
+
     try:
         main()
     except Exception:
