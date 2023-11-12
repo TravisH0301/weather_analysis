@@ -16,8 +16,13 @@ Solution Approach:
 
 - Step 3: Finally, the dataset is grouped by station and year to count 
           the number of days that met with the above conditions.
-          
+
 - Step 4: The output dataset is ordered by store name and year to display results.
+
+*****
+Please note that the answer may be differ in year 2023 depending on the version of
+BOM dataset as the dataset gets updated daily, creating difference in the record numbers.
+*****
 */
 
 with union_cte as (
