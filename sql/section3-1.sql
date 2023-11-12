@@ -10,10 +10,13 @@ This flat plane approach was used given the points are all in the same states.
 Solution Approach:
 - Step 1: This question is approached by using a CTE with unioned temperature
           year partition tables from 2014. 
+
 - Step 2: Then in the outer query, the dataset is filtered by stations and 
           maximum temperatures according to the conditions provided by the question.
+
 - Step 3: Finally, the dataset is grouped by station and year to count 
           the number of days that met with the above conditions.
+          
 - Step 4: The output dataset is ordered by store name and year to display results.
 */
 
