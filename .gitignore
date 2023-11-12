@@ -1,5 +1,6 @@
 dbt-env
 logs
+Dockerfile
 todo.txt
 .user.yml
 .env
