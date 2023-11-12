@@ -1,7 +1,7 @@
 dbt-env
 logs
-
+.user.yml
 log/*.txt
-
 *.pdf
 *.lnk
+
