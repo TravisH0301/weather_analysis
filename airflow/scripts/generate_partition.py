@@ -8,7 +8,7 @@
 #              - dbt data model for the created partition table
 #                (e.g., rain_2023.sql)
 #              This script allows the dataset to grow incrementally without
-#              having to create new table nor dbt data model.
+#              having to manually create new table nor dbt data model.
 # Author: Travis Hong
 # Repository: https://github.com/TravisH0301/weather_analysis
 ###############################################################################
