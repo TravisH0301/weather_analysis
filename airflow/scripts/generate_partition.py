@@ -62,6 +62,11 @@ def generate_dbt_model_script(schema, year, script_name, target_location):
     of the year partition table for the given schema and year 
     in the target location.
 
+    The dbt model script is designed to call the dbt macro 
+    `generate_year_partition_model` to create a year partition data model
+    with the given year and attributes. This macro is universal across
+    all weather schemas.
+    
     Parameters
     ----------
     schema: str
