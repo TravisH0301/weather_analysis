@@ -117,7 +117,7 @@ def pre_process_csv(file_obj, state):
         skip_blank_lines=True
     )
 
-    # Pre-process columns
+    # Pre-process dataset
     ## Redefine columns
     df.columns = columns
     ## Nulliyfy empty strings
@@ -179,19 +179,19 @@ def pre_process_fwf(file_obj):
         names=columns
     )
 
+    # Pre-process dataset
     # Strip empty spaces
     for col in columns[1:-2]:
         df[col] = df[col].str.strip()
-
     # Convert STATION_ID column into string data type & fill zero upto 6 characters
     df["STATION_ID"] = df["STATION_ID"].astype(str).str.zfill(6)
-
     # Convert STATION_SINCE column into date data type
     df["STATION_SINCE"] = pd.to_datetime(df["STATION_SINCE"], format="%Y%m%d..").dt.date
-
     # Convert coordinate attributes into float data type
     df["LATITUDE"] = df["LATITUDE"].astype(np.float64)
     df["LONGITUDE"] = df["LONGITUDE"].astype(np.float64)
+    # Add additional attribute
+    df["LOAD_DATE"] = date_today
 
     return df
 
@@ -331,7 +331,8 @@ if __name__ == "__main__":
             STATION_NAME VARCHAR(40),
             STATION_SINCE DATE,
             LATITUDE FLOAT,
-            LONGITUDE FLOAT
+            LONGITUDE FLOAT,
+            LOAD_DATE DATE
         );
     """
 
