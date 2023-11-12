@@ -1,4 +1,4 @@
-{% macro generate_temperature_model(attributes) %}
+{% macro generate_year_partition_model(attributes) %}
 
 select distinct
     station_name || '_' || to_varchar(date, 'yyyymmdd') as record_id,
