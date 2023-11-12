@@ -320,7 +320,7 @@ if __name__ == "__main__":
 
     # Define Snowflake queries
     query_create_temp_table = """
-        CREATE TEMPORARY TABLE {} AS {}
+        CREATE TEMPORARY TABLE {} LIKE {};
     """
     ## Weather dataset
     query_create_tgt_weather = f"""
