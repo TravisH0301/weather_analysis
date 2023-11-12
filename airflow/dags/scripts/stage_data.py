@@ -282,7 +282,7 @@ if __name__ == "__main__":
     date_today = datetime_now.date()
     
     # Define S3-compatible object storage client via MinIO
-    minio_endpoint = os.environ["MINIO_ENDPOINT"]
+    minio_endpoint = "http://host.docker.internal:9000"
     minio_access_key = os.environ["MINIO_ACCESS_KEY"]
     minio_secret_key = os.environ["MINIO_SECRET_KEY"]
     bucket_name = "bom-landing"

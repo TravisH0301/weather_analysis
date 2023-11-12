@@ -36,7 +36,7 @@ class AirflowEmailSender():
         self.text = ""
         self.send_from = send_from
         self.send_to = send_to
-        self.smtp_host = "localhost"
+        self.smtp_host = "host.docker.internal"
         self.smtp_port = 1025
 
     def __build_msg(self):

@@ -31,6 +31,8 @@ with DAG(
     }
 ) as dag:
     
+    # Task to 
+
     # Task to retrive BOM dataset and land into object storage
     land_file = BashOperator(
         task_id="land_file",
@@ -52,9 +54,18 @@ with DAG(
         dag=dag
     )
 
+    # Task to load data into data model incrementally in Snowflake
+    incremental_data_load = BashOperator(
+        task_id="incremental_data_load",
+        bash_command="dbt build",
+        dag=dag
+    )
+
+
     # Define task dependecies
     (
         land_file
         >> stage_data
         >> generate_dbt_model
+        >> incremental_data_load
     )

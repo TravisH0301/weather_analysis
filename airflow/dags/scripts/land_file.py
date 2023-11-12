@@ -77,7 +77,7 @@ if __name__ == "__main__":
     ## FTP compressed file source
     ftp_file_path = "ftp://ftp2.bom.gov.au/anon/gen/clim_data/IDCKWCDEA0.tgz"
     ## S3-compatible object storage via MinIO
-    minio_endpoint = os.environ["MINIO_ENDPOINT"]
+    minio_endpoint = "http://host.docker.internal:9000"
     minio_access_key = os.environ["MINIO_ACCESS_KEY"]
     minio_secret_key = os.environ["MINIO_SECRET_KEY"]
     bucket_name = "bom-landing"
