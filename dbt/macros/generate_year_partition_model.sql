@@ -7,6 +7,8 @@ attributes for the table. E.g., RAIN for RAIN_YYYY table.
 
 select distinct
     station_name || '_' || to_varchar(date, 'yyyymmdd') as record_id,
+    station_name,
+    date,
     {{ attributes }}
     state,
     current_date() as load_date
