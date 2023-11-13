@@ -255,12 +255,36 @@ def main():
     """
     LoggingMixin().log.info("Loading datasets into Snowflake staging schema...")
     ## Weather dataset 
-    ### Combine weather datasets and load into temp weather table
+    ### Combine weather datasets
     df_weather_combine = pd.concat(df_weather_li, ignore_index=True)
-    df_weather_combine = df_weather_combine.drop_duplicates()
+    ### Deduplicate records
+    """Given there are weather records that are duplicated across different
+    state locations, STATE column is not considered in the dedup function.
+    Ideally, correct state information from station dataset (stations_db.txt)
+    is to be used for deduplication. However due to lack of completeness of the
+    text file, having incorrect state information is compensated in order to
+    ensure uniqueness of the weather records.
+    """
+    df_weather_combine = df_weather_combine.drop_duplicates(
+        subset=[
+            "STATION_NAME",
+            "DATE",
+            "EVAPO_TRANSPIRATION",
+            "RAIN",
+            "PAN_EVAPORATION",
+            "MAXIMUM_TEMPERATURE",
+            "MINIMUM_TEMPERATURE",
+            "MAXIMUM_RELATIVE_HUMIDITY",
+            "MINIMUM_RELATIVE_HUMIDITY",
+            "AVERAGE_10M_WIND_SPEED",
+            "SOLAR_RADIATION"
+        ]
+    )
+    ### Load into temp weather table
     write_pandas(conn, df_weather_combine, table_temp_weather)
     ### Merge from temp weather table to target weather table
     cur.execute(query_merge_weather)
+
     ## State dataset
     ### Load station dataset into temp station table
     write_pandas(conn, df_station, table_temp_station)
