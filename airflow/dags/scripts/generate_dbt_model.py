@@ -90,8 +90,8 @@ def generate_dbt_model_script(schema, year, script_name, target_location):
 def generate_schema_yml(schema, year, col_schema):
     """
     This function creates a schame yaml file for the year partition tables.
-    Schema-specific columns and their descriptions can be added dynamically by
-    passing them in a dictionary.
+    Schema-specific columns, their descriptions and test cases (optional) 
+    can be added dynamically by passing them in a dictionary.
 
     Parameters
     ----------
@@ -100,7 +100,7 @@ def generate_schema_yml(schema, year, col_schema):
     year: int/str
         Year for partition table.
     col_schema: dict
-        Dictionary of schema-specific columns and descriptions.
+        Dictionary of schema-specific columns details.
     """
     # Define base schame
     schema_dict = {
@@ -128,27 +128,48 @@ def generate_schema_yml(schema, year, col_schema):
     }
     
     # Dynamically add schema specifc columns and their tests to schema
-    for col_name, col_desc in col_schema.items():
-        column_entry = {
-            "name": col_name,
-            "description": col_desc,
-        }
+    for col_name, col_detail in col_schema.items():
+        if len(col_detail) > 1:
+            column_entry = {
+                "name": col_name,
+                "description": col_detail[0],
+                "tests": col_detail[1]
+            }
+        else:
+            column_entry = {
+                "name": col_name,
+                "description": col_detail[0],
+            }
         schema_dict["models"][0]["columns"].append(column_entry)
 
     # Add last 2 static columns to schema
     schema_dict["models"][0]["columns"].append({
         "name": "state",
         "description": "Address state",
+        "tests": [
+            {
+                "dbt_expectations.expect_column_values_to_be_in_set": {
+                    "value_set": "['NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA']"
+                }
+            }
+        ]
     })
     schema_dict["models"][0]["columns"].append({
         "name": "load_date",
         "description": "Date of data load from staging schema",
     })
 
-    # Write YAML file
-    file_path = f"/opt/airflow/dags/dbt/models/{schema}/{schema}_{year}.yml"    
+    # Write yaml file
+    file_path = f"/opt/airflow/dags/dbt/models/{schema}/{schema}_{year}.yml"
     with open(file_path, "w") as f:
         yaml.dump(schema_dict, f, sort_keys=False)
+
+    # Fix formatting from yaml dump and rewrite yaml file
+    with open(file_path, "r") as f:
+        schema_str = "".join(f.readlines())
+        schema_str_formatted = schema_str.replace("''", "'").replace("'[", "[").replace("]'", "]")
+        with open(file_path, "w") as f:
+            f.write(schema_str_formatted)
 
 
 def main():
@@ -274,33 +295,98 @@ if __name__ == "__main__":
     dbt_script_str_2 = "\n\n{{{{\n    generate_year_partition_model_macro(\n        \"{}\", {}\n    )\n}}}}"
     dbt_script_str = dbt_script_str_1 + dbt_script_str_2
 
-    # Define dictionary of schema-specific columns
+    # Define dictionary of schema-specific columns details
     """
+    E.g., 
+    { 
+        Weather schema: {
+            Column name: [
+                Column description,
+                [ Test case (optional) ]
+            ]
+        }
+    }
     """
     weather_schema_dict_yaml = {
         "EVAPO_TRANSPIRATION": {
-            "evapo_transpiration": "Evapo transpiration (mm)",
+            "evapo_transpiration": [
+                "Evapo transpiration (mm)",
+                [{
+                    "dbt_expectations.expect_column_values_to_be_between": {
+                        "min_value": "0"
+                    }
+                }]
+            ],
         },
         "RAIN": {
-            "rain": "Rain fall (mm)"
+            "rain": [
+                "Rain fall (mm)",
+                [{
+                    "dbt_expectations.expect_column_values_to_be_between": {
+                        "min_value": "0"
+                    }
+                }]
+            ]
         },
         "PAN_EVAPORATION": {
-            "pan_evaporation": "Pan evaporation (mm)"
+            "pan_evaporation": [
+                "Pan evaporation (mm)",
+                [{
+                    "dbt_expectations.expect_column_values_to_be_between": {
+                        "min_value": "0"
+                    }
+                }]
+            ]
         },
         "TEMPERATURE": {
-            "maximum_temperature": "Maximum temperature ('C)",
-            "minimum_temperature": "Minimum temperature ('C)",
-            "variance_temperature": "Temperature variance ('C)"
+            "maximum_temperature": ["Maximum temperature ('C)"],
+            "minimum_temperature": ["Minimum temperature ('C)"],
+            "variance_temperature": [
+                "Temperature variance ('C)",
+                [{
+                    "dbt_expectations.expect_column_values_to_be_between": {
+                        "min_value": "0"
+                    }
+                }]
+            ]
         },
         "RELATIVE_HUMIDITY": {
-            "maximum_relative_humidity": "Maximum_relative_humidity(%)",
-            "minimum_relative_humidity": "Minimum_relative_humidity(%)"
+            "maximum_relative_humidity": [
+                "Maximum_relative_humidity(%)",
+                [{
+                    "dbt_expectations.expect_column_values_to_be_between": {
+                        "min_value": "0"
+                    }
+                }]
+            ],
+            "minimum_relative_humidity": [
+                "Minimum_relative_humidity(%)",
+                [{
+                    "dbt_expectations.expect_column_values_to_be_between": {
+                        "min_value": "0"
+                    }
+                }]
+            ]
         },
         "WIND_SPEED": {
-            "average_10m_wind_speed": "Average 10m wind speed (m/sec)"
+            "average_10m_wind_speed": [
+                "Average 10m wind speed (m/sec)",
+                [{
+                    "dbt_expectations.expect_column_values_to_be_between": {
+                        "min_value": "0"
+                    }
+                }]
+            ]
         },
         "SOLAR_RADIATION": {
-            "solar_radiation": "Solar radiation (MJ/sq m)"
+            "solar_radiation": [
+                "Solar radiation (MJ/sq m)",
+                [{
+                    "dbt_expectations.expect_column_values_to_be_between": {
+                        "min_value": "0"
+                    }
+                }]
+            ]
         }
     }
 
