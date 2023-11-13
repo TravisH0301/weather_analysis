@@ -58,9 +58,12 @@ def find_latest_file(s3_client, bucket_name):
 
 def check_dataset_date_condition(file_name):
     """
-    This function checks if the weather dataset is
-    created in or after 2012. This is to limit the 
-    datasets based on the case study section 3.
+    This function checks if the weather dataset is:
+    1. created in or after 2012
+    2. originated from VIC or WA
+    
+    This is to limit the dataset size based on the 
+    case study section 3.
 
     Parameters
     ----------
@@ -73,7 +76,10 @@ def check_dataset_date_condition(file_name):
     """
 
     create_year = int(file_name[-10:-6])
-    return create_year >= 2012
+    is_cond_1_met = (create_year >= 2012)
+    is_cond_2_met = (("tables/vic" in file_name) or ("tables/wa" in file_name))
+
+    return is_cond_1_met and is_cond_2_met
 
 
 def pre_process_csv(file_obj, state):
@@ -281,7 +287,9 @@ def main():
         for member in tar_file.getmembers():
             # Process and load csv files for weather datasets
             if member.isfile() and member.name.endswith(".csv"):
-                # Process only if dataset is created in or after 2012
+                # Process only if dataset is:
+                # 1. created in or after 2012
+                # 2. from VIC or WA
                 is_valid = check_dataset_date_condition(member.name)
                 if not is_valid:
                     continue
