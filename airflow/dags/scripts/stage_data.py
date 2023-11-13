@@ -341,6 +341,22 @@ if __name__ == "__main__":
         aws_secret_access_key=minio_secret_key
     )
 
+    # Define weather stations and their wrong station locations
+    """ This list contains pairs of stations and their wrong station locations
+    identified in the BOM dataset. These are to be used to remove weather records
+    that are duplicated across multiple states.
+    """
+    station_wrong_state = [
+        ("ALBURY AIRPORT", "VIC"),
+        ("ALICE SPRINGS AIRPORT", "SA"),
+        ("ALICE SPRINGS AIRPORT", "VIC"),
+        ("DENILIQUIN AIRPORT", "VIC"),
+        ("EUCLA", "SA"),
+        ("EVANS HEAD RAAF BOMBING RANGE", "QLD"),
+        ("FORREST",	"SA"),
+        ("WANGARATTA AERO","WA")
+    ]
+
     # Define Snowflake connection
     snowflake_user = os.environ["SNOWFLAKE_USER"]
     snowflake_pwd = os.environ["SNOWFLAKE_PWD"]
@@ -460,22 +476,6 @@ if __name__ == "__main__":
                 SOURCE.LOAD_DATE
             );
     """
-
-    # Define weather stations and their wrong station locations
-    """ This list contains pairs of stations and their wrong station locations
-    identified in the BOM dataset. These are to be used to remove weather records
-    that are duplicated across multiple states.
-    """
-    station_wrong_state = [
-        ("ALBURY AIRPORT", "VIC"),
-        ("ALICE SPRINGS AIRPORT", "SA"),
-        ("ALICE SPRINGS AIRPORT", "VIC"),
-        ("DENILIQUIN AIRPORT", "VIC"),
-        ("EUCLA", "SA"),
-        ("EVANS HEAD RAAF BOMBING RANGE", "QLD"),
-        ("FORREST",	"SA"),
-        ("WANGARATTA AERO","WA")
-    ]
 
     try:
         # Start process
