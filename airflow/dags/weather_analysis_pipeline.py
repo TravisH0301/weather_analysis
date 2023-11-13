@@ -26,8 +26,9 @@ with DAG(
         "start_date": datetime(2023, 11, 12),
         "schedule_interval": "@monthly",
         "retries": 0,
-        "on_success_callback": email_sender.dag_complete_alert,
-        "on_failure_callback": email_sender.dag_failure_alert
+        # Switched off emailing as unable to send from Docker server
+        # "on_success_callback": email_sender.dag_complete_alert,
+        # "on_failure_callback": email_sender.dag_failure_alert
     }
 ) as dag:
     
@@ -61,6 +62,13 @@ with DAG(
         dag=dag
     )
 
+    # Task to reconcile row counts between staging and weather schemas in Snowflake
+    reconcile_data = BashOperator(
+        task_id="reconcile_data",
+        bash_command="python /opt/airflow/dags/scripts/reconcile_data.py",
+        dag=dag
+    )
+
 
     # Define task dependecies
     (
@@ -68,4 +76,5 @@ with DAG(
         >> stage_data
         >> generate_dbt_model
         >> incremental_data_load
+        >> reconcile_data
     )
