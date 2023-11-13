@@ -250,6 +250,9 @@ def validate_weather(df):
     Ideally, the records are to be either rectified or estimated but
     due to the time constraint of this project, they are disregarded instead.
 
+    Note that null values are kept as the weather station may not has 
+    a measurement equipment.
+
     Parameters
     ----------
     df: pd.DataFrame
@@ -261,20 +264,48 @@ def validate_weather(df):
         Validated weather dataset.
     """
     # Validate Evapo transpiration >= 0
-    df = df.loc[df["EVAPO_TRANSPIRATION"] >= 0]
+    df = df.loc[
+        (df["EVAPO_TRANSPIRATION"] >= 0)
+        | (df["EVAPO_TRANSPIRATION"].isnull())
+    ]
     # Validate Rain fall >= 0
-    df = df.loc[df["RAIN"] >= 0]
+    df = df.loc[
+        (df["RAIN"] >= 0)
+        | (df["RAIN"].isnull())
+    ]
     # Validate Pan evaporation >= 0
-    df = df.loc[df["PAN_EVAPORATION"] >= 0]
+    df = df.loc[
+        (df["PAN_EVAPORATION"] >= 0)
+        | (df["PAN_EVAPORATION"].isnull())
+    ]
     # Validate Max Temp > Min Temp
-    df = df.loc[df["MAXIMUM_TEMPERATURE"] >= df["MINIMUM_TEMPERATURE"]]
+    df = df.loc[
+        (
+            (df["MAXIMUM_RELATIVE_HUMIDITY"] >= 0)
+            | (df["MAXIMUM_RELATIVE_HUMIDITY"].isnull())
+        ) &
+        (
+            (df["MINIMUM_RELATIVE_HUMIDITY"] >= 0)
+            | (df["MINIMUM_RELATIVE_HUMIDITY"].isnull())
+        )
+    ]
     # Validate Relative humidity >= 0
-    df = df.loc[df["MAXIMUM_RELATIVE_HUMIDITY"] >= 0]
-    df = df.loc[df["MINIMUM_RELATIVE_HUMIDITY"] >= 0]
+    df = df.loc[
+        (df["MAXIMUM_RELATIVE_HUMIDITY"] >= 0)
+        | (df["MINIMUM_RELATIVE_HUMIDITY"] >= 0)
+        | (df["MAXIMUM_RELATIVE_HUMIDITY"].isnull())
+        | (df["MINIMUM_RELATIVE_HUMIDITY"].isnull())
+    ]
     # Validate Wind speed >= 0
-    df = df.loc[df["AVERAGE_10M_WIND_SPEED"] >= 0]
+    df = df.loc[
+        (df["AVERAGE_10M_WIND_SPEED"] >= 0)
+        | df["AVERAGE_10M_WIND_SPEED"].isnull()
+    ]
     # Validate Solar radiation >= 0
-    df = df.loc[df["SOLAR_RADIATION"] >= 0]
+    df = df.loc[
+        (df["SOLAR_RADIATION"] >= 0)
+        | (df["SOLAR_RADIATION"].isnull())
+    ]
 
     return df
 
