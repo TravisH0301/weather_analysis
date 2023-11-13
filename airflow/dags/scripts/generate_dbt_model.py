@@ -297,6 +297,8 @@ if __name__ == "__main__":
 
     # Define dictionary of schema-specific columns details
     """
+    This dictionary holds schema-specific columns details including
+    test cases (optional).
     E.g., 
     { 
         Weather schema: {
