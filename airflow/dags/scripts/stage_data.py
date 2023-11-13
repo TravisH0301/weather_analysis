@@ -280,6 +280,12 @@ def validate_weather(df):
     ]
     # Validate Max Temp > Min Temp
     df = df.loc[
+        (df["MAXIMUM_TEMPERATURE"] >= df["MINIMUM_TEMPERATURE"])
+        | (df["MAXIMUM_TEMPERATURE"].isnull())
+        | (df["MINIMUM_TEMPERATURE"].isnull())
+    ]
+    # Validate Relative humidity >= 0
+    df = df.loc[
         (
             (df["MAXIMUM_RELATIVE_HUMIDITY"] >= 0)
             | (df["MAXIMUM_RELATIVE_HUMIDITY"].isnull())
@@ -288,13 +294,6 @@ def validate_weather(df):
             (df["MINIMUM_RELATIVE_HUMIDITY"] >= 0)
             | (df["MINIMUM_RELATIVE_HUMIDITY"].isnull())
         )
-    ]
-    # Validate Relative humidity >= 0
-    df = df.loc[
-        (df["MAXIMUM_RELATIVE_HUMIDITY"] >= 0)
-        | (df["MINIMUM_RELATIVE_HUMIDITY"] >= 0)
-        | (df["MAXIMUM_RELATIVE_HUMIDITY"].isnull())
-        | (df["MINIMUM_RELATIVE_HUMIDITY"].isnull())
     ]
     # Validate Wind speed >= 0
     df = df.loc[
