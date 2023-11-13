@@ -1,0 +1,26 @@
+version: 2
+models:
+- name: monthly_average
+  columns:
+  - name: station_name
+    description: Weather station name
+    tests:
+    - not_null
+  - name: state
+    description: Address state
+    tests:
+    - not_null
+  - name: year
+    description: Measurement year
+    tests:
+    - not_null
+  - name: month
+    description: Measurement month
+    tests:
+    - not_null
+  - name: average_variance_temperature
+    description: Monthly average of temperature variance ('C')
+  - name: average_rain
+    description: Monthly average of rain fall (mm)
+  - name: average_10m_wind_speed
+    description: Monthly average of wind speed (m/sec)
