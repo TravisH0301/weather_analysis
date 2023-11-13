@@ -197,6 +197,55 @@ def pre_process_fwf(file_obj):
     return df
 
 
+
+def dedup_weather(df):
+    """
+    This function deduplicates weather datasets using two methods:
+    1. Removing weather records with wrong weather station location
+    2. Removing weather records with duplicated station, date, and other
+      measurement attributes
+    
+    About the first method, there are duplicated weather datasets across 
+    different state directories in the BOM dataset. Hence, pairs of stations
+    and their wrong station locations are identified to be removed.
+    Ideally, station dataset from stations_db.txt is to be used to identify
+    the correct station locations, yet, due to its incompleteness, the station
+    dataset is not integrated in this deduplication function.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        Weather dataset to be deduplicated.
+
+    Returns
+    -------
+    pd.DataFrame
+        Deduplicated weather dataset.
+    """
+    # Remove records with wrong weather station location
+    for (station, wrong_state) in station_wrong_state:
+        df = df.loc[((df["STATION_NAME"]==station) & (df["STATE"]==wrong_state))]
+
+    # Remove records with deduplications
+    df = df.drop_duplicates(
+        subset=[
+            "STATION_NAME",
+            "DATE",
+            "EVAPO_TRANSPIRATION",
+            "RAIN",
+            "PAN_EVAPORATION",
+            "MAXIMUM_TEMPERATURE",
+            "MINIMUM_TEMPERATURE",
+            "MAXIMUM_RELATIVE_HUMIDITY",
+            "MINIMUM_RELATIVE_HUMIDITY",
+            "AVERAGE_10M_WIND_SPEED",
+            "SOLAR_RADIATION"
+        ]
+    )
+
+    return df
+
+
 def main():
     LoggingMixin().log.info("Process has started")
 
@@ -258,30 +307,9 @@ def main():
     ### Combine weather datasets
     df_weather_combine = pd.concat(df_weather_li, ignore_index=True)
     ### Deduplicate records
-    """Given there are weather records that are duplicated across different
-    state locations, STATE column is not considered in the dedup function.
-    Ideally, correct state information from station dataset (stations_db.txt)
-    is to be used for deduplication. However due to lack of completeness of the
-    text file, having incorrect state information is compensated in order to
-    ensure uniqueness of the weather records.
-    """
-    df_weather_combine = df_weather_combine.drop_duplicates(
-        subset=[
-            "STATION_NAME",
-            "DATE",
-            "EVAPO_TRANSPIRATION",
-            "RAIN",
-            "PAN_EVAPORATION",
-            "MAXIMUM_TEMPERATURE",
-            "MINIMUM_TEMPERATURE",
-            "MAXIMUM_RELATIVE_HUMIDITY",
-            "MINIMUM_RELATIVE_HUMIDITY",
-            "AVERAGE_10M_WIND_SPEED",
-            "SOLAR_RADIATION"
-        ]
-    )
+    df_weather_combine_dedup = dedup_weather(df_weather_combine)
     ### Load into temp weather table
-    write_pandas(conn, df_weather_combine, table_temp_weather)
+    write_pandas(conn, df_weather_combine_dedup, table_temp_weather)
     ### Merge from temp weather table to target weather table
     cur.execute(query_merge_weather)
 
@@ -432,6 +460,22 @@ if __name__ == "__main__":
                 SOURCE.LOAD_DATE
             );
     """
+
+    # Define weather stations and their wrong station locations
+    """ This list contains pairs of stations and their wrong station locations
+    identified in the BOM dataset. These are to be used to remove weather records
+    that are duplicated across multiple states.
+    """
+    station_wrong_state = [
+        ("ALBURY AIRPORT", "VIC"),
+        ("ALICE SPRINGS AIRPORT", "SA"),
+        ("ALICE SPRINGS AIRPORT", "VIC"),
+        ("DENILIQUIN AIRPORT", "VIC"),
+        ("EUCLA", "SA"),
+        ("EVANS HEAD RAAF BOMBING RANGE", "QLD"),
+        ("FORREST",	"SA"),
+        ("WANGARATTA AERO","WA")
+    ]
 
     try:
         # Start process
