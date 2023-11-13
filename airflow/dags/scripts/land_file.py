@@ -85,6 +85,10 @@ if __name__ == "__main__":
     )
 
     # Start Process
-    main()
+    try:
+        main()
+    finally:
+        # Close connection
+        s3.close()
     
 

@@ -354,7 +354,7 @@ if __name__ == "__main__":
         },
         "RELATIVE_HUMIDITY": {
             "maximum_relative_humidity": [
-                "Maximum_relative_humidity(%)",
+                "Maximum relative humidity(%)",
                 [{
                     "dbt_expectations.expect_column_values_to_be_between": {
                         "min_value": "0"
@@ -362,7 +362,7 @@ if __name__ == "__main__":
                 }]
             ],
             "minimum_relative_humidity": [
-                "Minimum_relative_humidity(%)",
+                "Minimum relative humidity(%)",
                 [{
                     "dbt_expectations.expect_column_values_to_be_between": {
                         "min_value": "0"

@@ -517,6 +517,7 @@ if __name__ == "__main__":
         # Start process
         main()
     finally:
-        # Close cursor and connection
+        # Close cursor and connections
         cur.close()
         conn.close()
+        s3.close()
