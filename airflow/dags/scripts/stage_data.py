@@ -224,7 +224,7 @@ def dedup_weather(df):
     """
     # Remove records with wrong weather station location
     for (station, wrong_state) in station_wrong_state:
-        df = df.loc[((df["STATION_NAME"]==station) & (df["STATE"]==wrong_state))]
+        df = df.loc[~((df["STATION_NAME"]==station) & (df["STATE"]==wrong_state))]
 
     # Remove records with deduplications
     df = df.drop_duplicates(
