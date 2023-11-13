@@ -21,7 +21,13 @@ models:
     description: Minimum temperature ('C)
   - name: variance_temperature
     description: Temperature variance ('C)
+    tests:
+    - dbt_expectations.expect_column_values_to_be_between:
+        min_value: '0'
   - name: state
     description: Address state
+    tests:
+    - dbt_expectations.expect_column_values_to_be_in_set:
+        value_set: ['NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA']
   - name: load_date
     description: Date of data load from staging schema
