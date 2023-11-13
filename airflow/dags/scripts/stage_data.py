@@ -208,8 +208,7 @@ def dedup_weather(df):
     """
     This function deduplicates weather datasets using two methods:
     1. Removing weather records with wrong weather station location
-    2. Removing weather records with duplicated station, date, and other
-      measurement attributes
+    2. Removing weather records with duplicated station and date
     
     About the first method, there are duplicated weather datasets across 
     different state directories in the BOM dataset. Hence, pairs of stations
@@ -232,25 +231,52 @@ def dedup_weather(df):
     for (station, wrong_state) in station_wrong_state:
         df = df.loc[~((df["STATION_NAME"]==station) & (df["STATE"]==wrong_state))]
 
-    # Remove records with deduplications
+    # Remove records with duplication
     df = df.drop_duplicates(
         subset=[
             "STATION_NAME",
-            "DATE",
-            "EVAPO_TRANSPIRATION",
-            "RAIN",
-            "PAN_EVAPORATION",
-            "MAXIMUM_TEMPERATURE",
-            "MINIMUM_TEMPERATURE",
-            "MAXIMUM_RELATIVE_HUMIDITY",
-            "MINIMUM_RELATIVE_HUMIDITY",
-            "AVERAGE_10M_WIND_SPEED",
-            "SOLAR_RADIATION"
+            "DATE"
         ]
     )
 
     return df
 
+
+def validate_weather(df):
+    """
+    This function validates weather dataset's measurement attributes
+    by removing faulty records from the dataset.
+
+    Ideally, the records are to be either rectified or estimated but
+    due to the time constraint of this project, they are disregarded instead.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        Weather dataset to be validated.
+    
+    Returns
+    -------
+    pd.DataFrame
+        Validated weather dataset.
+    """
+    # Validate Evapo transpiration >= 0
+    df = df.loc[df["EVAPO_TRANSPIRATION"] >= 0]
+    # Validate Rain fall >= 0
+    df = df.loc[df["RAIN"] >= 0]
+    # Validate Pan evaporation >= 0
+    df = df.loc[df["PAN_EVAPORATION"] >= 0]
+    # Validate Max Temp > Min Temp
+    df = df.loc[df["MAXIMUM_TEMPERATURE"] >= df["MINIMUM_TEMPERATURE"]]
+    # Validate Relative humidity >= 0
+    df = df.loc[df["MAXIMUM_RELATIVE_HUMIDITY"] >= 0]
+    df = df.loc[df["MINIMUM_RELATIVE_HUMIDITY"] >= 0]
+    # Validate Wind speed >= 0
+    df = df.loc[df["AVERAGE_10M_WIND_SPEED"] >= 0]
+    # Validate Solar radiation >= 0
+    df = df.loc[df["SOLAR_RADIATION"] >= 0]
+
+    return df
 
 def main():
     LoggingMixin().log.info("Process has started")
@@ -316,8 +342,10 @@ def main():
     df_weather_combine = pd.concat(df_weather_li, ignore_index=True)
     ### Deduplicate records
     df_weather_combine_dedup = dedup_weather(df_weather_combine)
+    ### Validate records
+    df_weather_combine_valid = validate_weather(df_weather_combine_dedup)
     ### Load into temp weather table
-    write_pandas(conn, df_weather_combine_dedup, table_temp_weather)
+    write_pandas(conn, df_weather_combine_valid, table_temp_weather)
     ### Merge from temp weather table to target weather table
     cur.execute(query_merge_weather)
 
