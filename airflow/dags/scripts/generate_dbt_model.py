@@ -60,7 +60,7 @@ def make_col_query_str(cols, purpose):
 
 def generate_dbt_model_script(schema, year, script_name, target_location):
     """
-    This function automatically generates a dbt data model script
+    This function generates a dbt data model script
     of the year partition table for the given schema and year 
     in the target location.
 
@@ -80,10 +80,12 @@ def generate_dbt_model_script(schema, year, script_name, target_location):
     target_location: str
         Location for dbt data model script.
     """
-    schema_lower = schema.lower()
+    # Create a partial query string with columns separated by comma
     attribute_li = weather_schema_dict_model[schema]
     attribute_query_str = make_col_query_str(attribute_li, purpose="dbt_model_script")
 
+    # Write dbt data model script
+    schema_lower = schema.lower()
     with open(target_location.format(schema_lower, script_name), "w") as f:
         f.write(dbt_script_str.format(attribute_query_str, year))
 
@@ -103,7 +105,7 @@ def generate_schema_yml(schema, year, col_schema):
     col_schema: dict
         Dictionary of schema-specific columns details.
     """
-    # Define base schame
+    # Define base schame with universal columns across schemas
     schema_dict = {
         "version": 2,
         "models": [{
@@ -130,12 +132,14 @@ def generate_schema_yml(schema, year, col_schema):
     
     # Dynamically add schema specifc columns and their tests to schema
     for col_name, col_detail in col_schema.items():
+        # Add test with column description when test case is given
         if len(col_detail) > 1:
             column_entry = {
                 "name": col_name,
                 "description": col_detail[0],
                 "tests": col_detail[1]
             }
+        # Else, add only column description
         else:
             column_entry = {
                 "name": col_name,
@@ -143,7 +147,7 @@ def generate_schema_yml(schema, year, col_schema):
             }
         schema_dict["models"][0]["columns"].append(column_entry)
 
-    # Add last 2 static columns to schema
+    # Add last 2 universal columns to schema
     schema_dict["models"][0]["columns"].append({
         "name": "state",
         "description": "Address state",
@@ -188,6 +192,7 @@ def main():
     # created year partition tables
     LoggingMixin().log.info("Creating year partition tables & dbt model scripts for weather schemas...")
     for schema, cols in weather_schema_dict_table.items():
+        # Add data type next to column
         cols_query_str = make_col_query_str(cols, purpose="year_partition_table")
         for year in year_li:
             # Create year partition table
@@ -195,7 +200,8 @@ def main():
             response = cur.fetchall()[0][0]
             LoggingMixin().log.info(response)
 
-            # Only generate dbt objects when new year partition table is created
+            # When table creation query returns successful response
+            # generate dbt model script and schema file
             if "successfully created" in response:
                 # Generate dbt model script for year partition table
                 schema_lower = schema.lower()
@@ -203,7 +209,7 @@ def main():
                 generate_dbt_model_script(schema, year, script_name, target_location)
                 LoggingMixin().log.info(f"dbt model script {script_name} has been created")
 
-                # Generate respective schema file for the above model script
+                # Generate respective schema file
                 col_schema = weather_schema_yaml_dict[schema]
                 generate_schema_yml(schema_lower, year, col_schema)
                 LoggingMixin().log.info(f"dbt model schema file {schema}_{year}.yml has been created")
@@ -230,7 +236,13 @@ if __name__ == "__main__":
     # Define Snowflake weather measurement schemas and their attributes
     ## For year partition tables
     """
+    This dictionary is used to create a query to create year partition table 
+    with respective attributes. 
+
     E.g., { Weather schema: Attributes of respective year partition table }
+
+    * Weather schema refer to weather measurement schema
+    * Year partition table refer to partition table by year
     """
     weather_schema_dict_table = {
         "EVAPO_TRANSPIRATION": ["EVAPO_TRANSPIRATION"],
@@ -250,6 +262,10 @@ if __name__ == "__main__":
     }
     ## For dbt data model scripts
     """
+    This dictionary is used to create a dbt data model script that
+    uses a macro `generate_year_partition_model_macro.sql which
+    requires inputs of columns.
+
     E.g., { Weather schema: Partial query to model the attributes 
                             of the respective year partition table }
     """
@@ -288,8 +304,9 @@ if __name__ == "__main__":
 
     # Define dbt data model script
     """
-    This script uses macro to generate a data model for year partition tables with
-    the passed year and schema-specific attributes.
+    This defines a dbt model script which uses a macro to generate 
+    a data model for year partition tables with the passed year 
+    and schema-specific attributes.
     """
     target_location = "/opt/airflow/dags/dbt/models/{}/{}"
     dbt_script_str_1 = "{{{{\n    config(\n        materialized='incremental'\n    )\n}}}}"
