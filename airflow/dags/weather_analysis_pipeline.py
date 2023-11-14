@@ -8,8 +8,9 @@
 from datetime import datetime
 from airflow import DAG
 
-from utils.airflow_email import AirflowEmailSender
 from airflow.operators.bash import BashOperator
+
+from utils.airflow_email import AirflowEmailSender
 
 
 # Instantiate Airflow email sender
