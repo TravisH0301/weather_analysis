@@ -4,7 +4,7 @@ biggest monthly average temperature variance since 2012.
 Additionally, it pairs up the weather station's monthly average rain fall and
 wind speed.
 
-Solution Approach:
+**Solution Approach**:
 - Step 1: Three CTE tables are created with unioned tables of temperature, rain and
           wind speed from 2012.
 
@@ -21,6 +21,22 @@ Solution Approach:
           to display the weather station and the year-month time that had the
           biggested monthly average temperature variance, alongside monthly average
           of the rain fall and wind speed.
+
+**Alternative Approach**:
+The aggregated dataset can be leveraged for this problem, which will result the
+same station record, yet at much better query performance.
+    SELECT
+        STATION_NAME,
+        STATE,
+        YEAR,
+        MONTH,
+        AVG_VAR_TEMPERATURE,
+        AVG_RAIN_FALL,
+        AVG_10M_WIND_SPEED
+    FROM AGGREGATED.MONTHLY_AVERAGE
+    WHERE AVG_VAR_TEMPERATURE IS NOT NULL
+    ORDER BY AVG_VAR_TEMPERATURE DESC
+    LIMIT 1;
 
 *****
 Please note that the answer may be differ in year 2023 depending on the version of

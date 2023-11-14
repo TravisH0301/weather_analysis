@@ -7,7 +7,7 @@ calculating the Euclidean distance between cooridnate points as
 illustrated in `find_nearest_weather_station.sql`.
 This flat plane approach was used given the points are all in the same states.
 
-Solution Approach:
+**Solution Approach**:
 - Step 1: This question is approached by using a CTE with unioned temperature
           year partition tables from 2014. 
 
