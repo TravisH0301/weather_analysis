@@ -13,6 +13,7 @@
 # Repository: https://github.com/TravisH0301/weather_analysis
 ###############################################################################
 import os
+import ast
 import yaml
 
 import snowflake.connector
@@ -203,7 +204,7 @@ def main():
                 LoggingMixin().log.info(f"dbt model script {script_name} has been created")
 
                 # Generate respective schema file for the above model script
-                col_schema = weather_schema_dict_yaml[schema]
+                col_schema = weather_schema_yaml_dict[schema]
                 generate_schema_yml(schema_lower, year, col_schema)
                 LoggingMixin().log.info(f"dbt model schema file {schema}_{year}.yml has been created")
     
@@ -309,88 +310,10 @@ if __name__ == "__main__":
         }
     }
     """
-    weather_schema_dict_yaml = {
-        "EVAPO_TRANSPIRATION": {
-            "evapo_transpiration": [
-                "Evapo transpiration (mm)",
-                [{
-                    "dbt_expectations.expect_column_values_to_be_between": {
-                        "min_value": "0"
-                    }
-                }]
-            ],
-        },
-        "RAIN": {
-            "rain": [
-                "Rain fall (mm)",
-                [{
-                    "dbt_expectations.expect_column_values_to_be_between": {
-                        "min_value": "0"
-                    }
-                }]
-            ]
-        },
-        "PAN_EVAPORATION": {
-            "pan_evaporation": [
-                "Pan evaporation (mm)",
-                [{
-                    "dbt_expectations.expect_column_values_to_be_between": {
-                        "min_value": "0"
-                    }
-                }]
-            ]
-        },
-        "TEMPERATURE": {
-            "maximum_temperature": ["Maximum temperature ('C)"],
-            "minimum_temperature": ["Minimum temperature ('C)"],
-            "variance_temperature": [
-                "Temperature variance ('C)",
-                [{
-                    "dbt_expectations.expect_column_values_to_be_between": {
-                        "min_value": "0"
-                    }
-                }]
-            ]
-        },
-        "RELATIVE_HUMIDITY": {
-            "maximum_relative_humidity": [
-                "Maximum relative humidity(%)",
-                [{
-                    "dbt_expectations.expect_column_values_to_be_between": {
-                        "min_value": "0"
-                    }
-                }]
-            ],
-            "minimum_relative_humidity": [
-                "Minimum relative humidity(%)",
-                [{
-                    "dbt_expectations.expect_column_values_to_be_between": {
-                        "min_value": "0"
-                    }
-                }]
-            ]
-        },
-        "WIND_SPEED": {
-            "average_10m_wind_speed": [
-                "Average 10m wind speed (m/sec)",
-                [{
-                    "dbt_expectations.expect_column_values_to_be_between": {
-                        "min_value": "0"
-                    }
-                }]
-            ]
-        },
-        "SOLAR_RADIATION": {
-            "solar_radiation": [
-                "Solar radiation (MJ/sq m)",
-                [{
-                    "dbt_expectations.expect_column_values_to_be_between": {
-                        "min_value": "0"
-                    }
-                }]
-            ]
-        }
-    }
+    weather_schema_file = "/opt/airflow/dags/scripts/weather_schema_yaml_dict.txt"
+    with open(weather_schema_file, "r") as f:
+        content = f.read()
+        weather_schema_yaml_dict = ast.literal_eval(content)
 
     try:
         # Start process
