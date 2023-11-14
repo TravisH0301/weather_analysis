@@ -55,5 +55,5 @@ models:
       +materialized: table
       +schema: solar_radiation
     aggregated:
-      +materialized: views
+      +materialized: table
       +schema: aggregated

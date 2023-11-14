@@ -18,9 +18,18 @@ models:
     description: Measurement month
     tests:
     - not_null
-  - name: average_variance_temperature
+  - name: average_var_temperature
     description: Monthly average of temperature variance ('C')
+    tests:
+    - dbt_expectations.expect_column_values_to_be_between:
+        min_value: '0'
   - name: average_rain
     description: Monthly average of rain fall (mm)
+    tests:
+    - dbt_expectations.expect_column_values_to_be_between:
+        min_value: '0'
   - name: average_10m_wind_speed
     description: Monthly average of wind speed (m/sec)
+    tests:
+    - dbt_expectations.expect_column_values_to_be_between:
+        min_value: '0'
