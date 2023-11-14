@@ -16,12 +16,12 @@ models:
     tests:
     - not_null
   - name: maximum_relative_humidity
-    description: Maximum_relative_humidity(%)
+    description: Maximum relative humidity(%)
     tests:
     - dbt_expectations.expect_column_values_to_be_between:
         min_value: '0'
   - name: minimum_relative_humidity
-    description: Minimum_relative_humidity(%)
+    description: Minimum relative humidity(%)
     tests:
     - dbt_expectations.expect_column_values_to_be_between:
         min_value: '0'
