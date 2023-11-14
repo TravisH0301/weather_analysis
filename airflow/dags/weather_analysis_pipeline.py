@@ -14,6 +14,15 @@ from utils.airflow_email import AirflowEmailSender
 
 
 # Instantiate Airflow email sender
+"""
+AirflowEmailSender class provides 2 methods to send an email
+upon completion or failure of a dag. 
+
+**For this case study, the class sends the email to the SMTP debugger
+hosted on Docker. However, due to failure to communicate between
+Airflow worker and STMP debugger on Docker, the emailing is switched
+off for the dag.
+"""
 email_sender = AirflowEmailSender(
     send_from="airflow-bot@test.com",
     send_to="local-email@test.com"
@@ -27,7 +36,7 @@ with DAG(
         "start_date": datetime(2023, 11, 12),
         "schedule_interval": "@monthly",
         "retries": 0,
-        # Switched off emailing as unable to send from Docker server
+        # Switched off emailing as unable
         # "on_success_callback": email_sender.dag_complete_alert,
         # "on_failure_callback": email_sender.dag_failure_alert
     }
