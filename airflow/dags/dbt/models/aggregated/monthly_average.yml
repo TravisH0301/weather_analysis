@@ -18,18 +18,44 @@ models:
     description: Measurement month
     tests:
     - not_null
-  - name: average_var_temperature
-    description: Monthly average of temperature variance ('C')
+  - name: avg_evapo_transpiration
+    description: Monthly average of evapo transpiration (mm)
     tests:
     - dbt_expectations.expect_column_values_to_be_between:
         min_value: '0'
-  - name: average_rain
+  - name: avg_rain_fall
     description: Monthly average of rain fall (mm)
     tests:
     - dbt_expectations.expect_column_values_to_be_between:
         min_value: '0'
-  - name: average_10m_wind_speed
+  - name: avg_pan_evaporation
+    description: Monthly average of pan evaporation (mm)
+    tests:
+    - dbt_expectations.expect_column_values_to_be_between:
+        min_value: '0'
+  - name: avg_var_temperature
+    description: Monthly average of temperature variance ('C')
+    tests:
+    - dbt_expectations.expect_column_values_to_be_between:
+        min_value: '0'
+  - name: avg_max_rel_humidity
+    description: Monthly average of maximum relative humidity (%)  
+    tests:
+    - dbt_expectations.expect_column_values_to_be_between:
+        min_value: '0'
+  - name: avg_min_rel_humidity
+    description: Monthly average of minimum relative humidity (%)  
+    tests:
+    - dbt_expectations.expect_column_values_to_be_between:
+        min_value: '0'
+  - name: avg_10m_wind_speed
     description: Monthly average of wind speed (m/sec)
     tests:
     - dbt_expectations.expect_column_values_to_be_between:
         min_value: '0'
+  - name: avg_solar_radiation
+    description: Monthly average of solar radiation (MJ/sq m)
+    tests:
+    - dbt_expectations.expect_column_values_to_be_between:
+        min_value: '0'
+
