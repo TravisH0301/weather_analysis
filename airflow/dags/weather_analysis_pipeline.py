@@ -33,8 +33,6 @@ with DAG(
     }
 ) as dag:
     
-    # Task to 
-
     # Task to retrive BOM dataset and land into object storage
     land_file = BashOperator(
         task_id="land_file",
