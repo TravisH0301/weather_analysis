@@ -18,11 +18,6 @@ This flat plane approach was used given the points are all in the same states.
           the number of days that met with the above conditions.
 
 - Step 4: The output dataset is ordered by store name and year to display results.
-
-*****
-Please note that the answer may be differ in year 2023 depending on the version of
-BOM dataset as the dataset gets updated daily, creating difference in the record numbers.
-*****
 */
 
 WITH UNION_CTE AS (
