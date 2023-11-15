@@ -8,15 +8,15 @@ wind speed.
 - Step 1: Three CTE tables are created with unioned tables of temperature, rain and
           wind speed from 2012.
 
-- Step 2: Additional CTE is created by joining the union CTE tables by using
-          the join key - record_id, which is a synthetic key consisted of 
-          station name and date in a form of <station_name>_<yyyymmdd>.
+- Step 2: In the outer query, three union CTE tables are joined using record_id 
+          as a join key - synthetic key consisted of station name and date in a 
+          form of <station_name>_<yyyymmdd>.
 
-- Step 3: Coupled with the above joining, the CTE is grouped by station name,
-          year and month to calculate the monthly average values of the
+- Step 3: Coupled with the above joining, the dataset is grouped by station name,
+          state, year and month to calculate the monthly average values of the
           temperature variance, rain fall and wind speed.
 
-- Step 4: In the outer query, the dataset is ordered by the monthly average
+- Step 4: Lastly, the dataset is ordered by the monthly average
           temperature variance in descending order, and the row is limited to 1
           to display the weather station and the year-month time that had the
           biggested monthly average temperature variance, alongside monthly average
@@ -121,33 +121,21 @@ WIND_SPEED_UNION AS (
     SELECT RECORD_ID, STATION_NAME, STATE, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2013
     UNION
     SELECT RECORD_ID, STATION_NAME, STATE, DATE, AVERAGE_10M_WIND_SPEED FROM WIND_SPEED.WIND_SPEED_2012
-),
-
-JOIN_GROUP AS (
-    SELECT
-        TEMP_UNION.STATION_NAME,
-        TEMP_UNION.STATE,
-        EXTRACT(YEAR FROM TEMP_UNION.DATE) AS YEAR,
-        EXTRACT(MONTH FROM TEMP_UNION.DATE) AS MONTH,
-        AVG(VARIANCE_TEMPERATURE) AS AVG_VAR_TEMP,
-        AVG(RAIN) AS AVG_RAIN,
-        AVG(AVERAGE_10M_WIND_SPEED) AS AVG_10M_WIND_SPEED
-    FROM TEMP_UNION
-    LEFT JOIN RAIN_UNION ON TEMP_UNION.RECORD_ID = RAIN_UNION.RECORD_ID
-    LEFT JOIN WIND_SPEED_UNION ON TEMP_UNION.RECORD_ID = WIND_SPEED_UNION.RECORD_ID
-    WHERE VARIANCE_TEMPERATURE IS NOT NULL
-        AND TEMP_UNION.STATE IN ('VIC', 'WA')
-    GROUP BY TEMP_UNION.STATION_NAME, TEMP_UNION.STATE, YEAR, MONTH
 )
 
 SELECT
-    STATION_NAME,
-    STATE,
-    YEAR,
-    MONTH,
-    AVG_VAR_TEMP,
-    AVG_RAIN,
-    AVG_10M_WIND_SPEED
-FROM JOIN_GROUP
+    TEMP_UNION.STATION_NAME,
+    TEMP_UNION.STATE,
+    EXTRACT(YEAR FROM TEMP_UNION.DATE) AS YEAR,
+    EXTRACT(MONTH FROM TEMP_UNION.DATE) AS MONTH,
+    AVG(VARIANCE_TEMPERATURE) AS AVG_VAR_TEMP,
+    AVG(RAIN) AS AVG_RAIN,
+    AVG(AVERAGE_10M_WIND_SPEED) AS AVG_10M_WIND_SPEED
+FROM TEMP_UNION
+LEFT JOIN RAIN_UNION ON TEMP_UNION.RECORD_ID = RAIN_UNION.RECORD_ID
+LEFT JOIN WIND_SPEED_UNION ON TEMP_UNION.RECORD_ID = WIND_SPEED_UNION.RECORD_ID
+WHERE VARIANCE_TEMPERATURE IS NOT NULL
+    AND TEMP_UNION.STATE IN ('VIC', 'WA')
+GROUP BY TEMP_UNION.STATION_NAME, TEMP_UNION.STATE, YEAR, MONTH
 ORDER BY AVG_VAR_TEMP DESC
 LIMIT 1;
