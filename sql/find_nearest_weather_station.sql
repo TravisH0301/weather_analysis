@@ -1,8 +1,14 @@
 /*
 This query finds the nearest weather stations from Bunnings Notting Hill
 and Kmart Belmont.
-Note that Euclidean distance is calculated given points are within the
-same state.
+Note that Euclidean distance is used to determine the nearest weather stations.
+
+**Approach**:
+- Step 1: Using the coordinates of each stores, find the Euclidean distance to 
+          all stations listed in the station dataset.
+- Step 2: Union the results for each store.
+- Step 3: Use the row_number() function and qualify clause to display the weather
+          stations that have the minimum Euclidean distance to the stores.
 
 - Bunnings Notting Hill coordinate: -37.900, 145.126 => MOORABBIN AIRPORT
 - Kmart Belmont coordinate: -31.965, 115.935 => PERTH AIRPORT
