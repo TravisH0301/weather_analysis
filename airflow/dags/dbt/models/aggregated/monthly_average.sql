@@ -184,44 +184,28 @@ solar_rad_union as (
     select record_id, station_name, state, date, solar_radiation from {{ ref('solar_radiation_2013') }}
     union
     select record_id, station_name, state, date, solar_radiation from {{ ref('solar_radiation_2012') }}
-),
-
-join_group as (
-    select
-        temp_union.station_name,
-        temp_union.state,
-        extract(year from temp_union.date) as year,
-        extract(month from temp_union.date) as month,
-        avg(evapo_transpiration) as avg_evapo_transpiration,
-        avg(rain) as avg_rain_fall,
-        avg(pan_evaporation) as avg_pan_evaporation,
-        avg(variance_temperature) as avg_var_temperature,
-        avg(maximum_relative_humidity) as avg_max_rel_humidity,
-        avg(minimum_relative_humidity) as avg_min_rel_humidity,
-        avg(average_10m_wind_speed) as avg_10m_wind_speed,
-        avg(solar_radiation) as avg_solar_radiation
-    from temp_union
-    left join evapo_trans_union on temp_union.record_id = evapo_trans_union.record_id
-    left join rain_union on temp_union.record_id = rain_union.record_id
-    left join pan_evapo_union on temp_union.record_id = pan_evapo_union.record_id
-    left join rel_hum_union on temp_union.record_id = rel_hum_union.record_id
-    left join wind_speed_union on temp_union.record_id = wind_speed_union.record_id
-    left join solar_rad_union on temp_union.record_id = solar_rad_union.record_id
-    where temp_union.state in ('VIC', 'WA')
-    group by temp_union.station_name, temp_union.state, year, month
 )
 
 select distinct
-    station_name,
-    state,
-    year,
-    month,
-    round(avg_evapo_transpiration, 3) as avg_evapo_transpiration,
-    round(avg_rain_fall, 3) as avg_rain_fall,
-    round(avg_pan_evaporation, 3) as avg_pan_evaporation,
-    round(avg_var_temperature, 3) as avg_var_temperature,
-    round(avg_max_rel_humidity, 3) as avg_max_rel_humidity,
-    round(avg_min_rel_humidity, 3) as avg_min_rel_humidity,
-    round(avg_10m_wind_speed, 3) as avg_10m_wind_speed,
-    round(avg_solar_radiation, 3) as avg_solar_radiation
-from join_group
+    temp_union.station_name,
+    extract(year from temp_union.date) as year,
+    extract(month from temp_union.date) as month,
+    avg(evapo_transpiration) as avg_evapo_transpiration,
+    avg(rain) as avg_rain_fall,
+    avg(pan_evaporation) as avg_pan_evaporation,
+    avg(variance_temperature) as avg_var_temperature,
+    avg(maximum_relative_humidity) as avg_max_rel_humidity,
+    avg(minimum_relative_humidity) as avg_min_rel_humidity,
+    avg(average_10m_wind_speed) as avg_10m_wind_speed,
+    avg(solar_radiation) as avg_solar_radiation,
+    temp_union.state,
+    current_date() as load_date
+from temp_union
+left join evapo_trans_union on temp_union.record_id = evapo_trans_union.record_id
+left join rain_union on temp_union.record_id = rain_union.record_id
+left join pan_evapo_union on temp_union.record_id = pan_evapo_union.record_id
+left join rel_hum_union on temp_union.record_id = rel_hum_union.record_id
+left join wind_speed_union on temp_union.record_id = wind_speed_union.record_id
+left join solar_rad_union on temp_union.record_id = solar_rad_union.record_id
+where temp_union.state in ('VIC', 'WA')
+group by temp_union.station_name, temp_union.state, year, month
