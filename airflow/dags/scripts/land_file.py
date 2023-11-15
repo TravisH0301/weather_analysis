@@ -45,7 +45,7 @@ def main():
 
     # Load compressed file into object storage
     """Current date is added to the file name to keep track of 
-    BOM dataset version within the compressed file.
+    BOM dataset version within object storage.
     """
     LoggingMixin().log.info("Loading compressed file into object storage...")
     file_name = os.path.basename(ftp_file_path)
