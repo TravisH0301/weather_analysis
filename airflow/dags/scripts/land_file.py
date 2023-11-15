@@ -84,8 +84,8 @@ if __name__ == "__main__":
         aws_secret_access_key=minio_secret_key
     )
 
-    # Start Process
     try:
+        # Start Process
         main()
     finally:
         # Close connection
