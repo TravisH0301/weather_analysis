@@ -62,8 +62,7 @@ def check_dataset_date_condition(file_name):
     1. created in or after 2012
     2. originated from VIC or WA
     
-    This is to limit the dataset size based on the 
-    case study section 3.
+    This is to limit the dataset size.
 
     Parameters
     ----------
