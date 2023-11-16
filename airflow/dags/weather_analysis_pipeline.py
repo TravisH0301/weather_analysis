@@ -18,7 +18,7 @@ from utils.airflow_email import AirflowEmailSender
 AirflowEmailSender class provides 2 methods to send an email
 upon completion or failure of a dag. 
 
-**For this case study, the class sends the email to the SMTP debugger
+**For this project, the class sends the email to the SMTP debugger
 hosted on Docker. However, due to time constraints, the communication
 between two services weren't enabled. Hence, the emailing is switched
 off on this dag.
