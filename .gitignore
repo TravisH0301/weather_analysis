@@ -6,6 +6,7 @@ todo.txt
 .user.yml
 .env
 log/*.txt
+test_sql/*
 __pycache__/
 *.pdf
 *.lnk
