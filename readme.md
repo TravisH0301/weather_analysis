@@ -12,7 +12,7 @@ An efficient database design and sufficient data governance over data quality ar
 
 ## Assumption
 - The weather dataset from the Bureau of Meteorology is assumed to be updated every month.
-- Scope of the project is limited to VIC & WA, and 2012 onwards.
+- Scope of the project is limited to weather measured from 2012 onwards.
 
 ## Architecture
 <img src="./architecture diagram.JPG" width="800">
