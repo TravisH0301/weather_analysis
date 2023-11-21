@@ -52,6 +52,11 @@ the aggregated data model.
 - reconcile_data: This process reconciles the row counts between staging schema and
 weather measurement schemas in Snowflake to ensure data integrity.
 
+Scripts can be found at:
+- Airflow dag script: [airflow/dags](https://github.com/TravisH0301/weather_analytics_platform/tree/main/airflow/dags)
+- Python scripts: [airflow/dags/scripts](https://github.com/TravisH0301/weather_analytics_platform/tree/main/airflow/dags/scripts)
+- dbt scripts: [airflow/dags/dbt](https://github.com/TravisH0301/weather_analytics_platform/tree/main/airflow/dags/dbt)
+
 ## Data Model
 
 
