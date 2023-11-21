@@ -67,3 +67,4 @@ Scripts can be found at:
 
 
 ## Data Source
+[Bureau of Meteorology FTP Public Products](http://www.bom.gov.au/catalogue/anon-ftp.shtml)
