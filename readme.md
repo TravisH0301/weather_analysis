@@ -58,6 +58,7 @@ Scripts can be found at:
 - dbt scripts: [airflow/dags/dbt](https://github.com/TravisH0301/weather_analytics_platform/tree/main/airflow/dags/dbt)
 
 ## Data Model
+<img src="./images/data model.png" width="800">
 
 
 ## Data Quality
