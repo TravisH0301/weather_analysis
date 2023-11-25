@@ -74,7 +74,7 @@ def check_dataset_date_condition(file_name):
     return create_year >= 2012
 
 
-def pre_process_csv(file_obj, state):
+def pre_process_csv(file_obj, state, date_today):
     """
     This function pre-processes CSV file object
     to refine columns with additional attributes.
@@ -85,6 +85,8 @@ def pre_process_csv(file_obj, state):
         CSV file object in Byte.
     state: str
         State the CSV dataset is from.
+    date_today: datetime.date
+        Current date.
 
     Returns
     -------
@@ -133,7 +135,7 @@ def pre_process_csv(file_obj, state):
     return df
 
 
-def pre_process_fwf(file_obj):
+def pre_process_fwf(file_obj, date_today):
     """
     This function pre-processes FWF (fixed width format) file object
     to define columns with additional attribute.
@@ -142,6 +144,8 @@ def pre_process_fwf(file_obj):
     ----------
     file_obj: object
         FWF file object in Byte.
+    date_today: datetime.date
+        Current date.
 
     Returns
     -------
@@ -342,14 +346,14 @@ def main():
                 # Convert csv file object to dataframe
                 state = member.name.split("/")[1].upper()
                 csv_obj = tar_file.extractfile(member)
-                df_weather = pre_process_csv(csv_obj, state)
+                df_weather = pre_process_csv(csv_obj, state, date_today)
                 df_weather_li.append(df_weather)
 
             # Process and load text file for station dataset
             elif member.isfile() and member.name.endswith(".txt"):
                 # Convert fwf text file object to dataframe
                 fwf_obj = tar_file.extractfile(member)
-                df_station = pre_process_fwf(fwf_obj)  
+                df_station = pre_process_fwf(fwf_obj, date_today)
     LoggingMixin().log.info("Datasets have been pre-processed")
 
     # Load pre-processed datasets into Snowflake staging schema
