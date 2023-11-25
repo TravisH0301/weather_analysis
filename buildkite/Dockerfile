@@ -8,10 +8,20 @@
 # Please ensure the environmental variable "BUILDKITE_AGENT_TOKEN" is defined
 # prior to running the commands.
 ###############################################################################
-FROM python:3.8-alpine
+FROM python:3.8-slim-bookworm
 
-# Install curl and other dependencies (if necessary)
-RUN apk add --no-cache curl bash
+# Install curl and other dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    curl \
+    bash \
+    git \
+    make \
+    automake \
+    gcc \
+    g++ \
+    subversion \
+    python3-dev
 
 # Download and run the install script for Buildkite Agent
 RUN bash -c "`curl -sL https://raw.githubusercontent.com/buildkite/agent/master/install.sh`"
