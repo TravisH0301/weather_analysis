@@ -1,6 +1,5 @@
 dbt-env
 logs
-Dockerfile
 test_dag.py
 todo.txt
 .user.yml
