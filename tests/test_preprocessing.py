@@ -1,3 +1,11 @@
+###############################################################################
+# Name: test_preprocessing.py
+# Description: This script defines unit tests for the preprocessing of 
+#              the weather and station datasets.
+#              These test cases uses the test datasets to conduct testing.
+# Author: Travis Hong
+# Repository: https://github.com/TravisH0301/weather_analysis
+###############################################################################
 import sys
 import os
 import unittest
@@ -15,7 +23,7 @@ class TestPreprocessing(unittest.TestCase):
     def test_pre_process_csv(self):
         # Define date variable
         date_today = datetime.now(pytz.timezone("Australia/Melbourne")).date()
-        
+
         # Preprocess test weather dataset
         with open("./tests/test_datasets/melbourne_airport-202310.csv", "rb") as f:
             test_df = pre_process_csv(f, "VIC", date_today)
