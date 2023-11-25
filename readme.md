@@ -4,7 +4,7 @@
 3. [Data Process](#Data-Process)
 4. [Data Model](#Data-Model)
 5. [Data Quality](#Data-Quality)
-6. [CI/CD](#CI-CD)
+6. [CI/CD](#CICD)
 7. [Consideration](#Consideration)
 8. [Data Source](#Data-Source)
 
