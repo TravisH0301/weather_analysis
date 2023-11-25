@@ -4,8 +4,9 @@
 3. [Data Process](#Data-Process)
 4. [Data Model](#Data-Model)
 5. [Data Quality](#Data-Quality)
-6. [Consideration](#Consideration)
-7. [Data Source](#Data-Source)
+6. [CI/CD](#CI/CD)
+7. [Consideration](#Consideration)
+8. [Data Source](#Data-Source)
 
 This project aims to build an end-to-end data solution to allow users to resolve enquries around weather data using Bureau of Meteorology (BOM) weather data. <br>
 An efficient database design and sufficient data governance over data quality are considered to ensure a reliable and trustworthy data product.
@@ -15,7 +16,7 @@ An efficient database design and sufficient data governance over data quality ar
 - Scope of the project is limited to the weather measured from 2012 onwards.
 
 ## Architecture
-<img src="./images/architecture diagram.JPG" width="800">
+<img src="./images/architecture diagram.png" width="800">
 
 The solution is built in a way that the dataset gets processed, validated and loaded into the database schemas for consumption.
 Technologies and methodologies were selected based on their robustness and scalability in handling large data volume.
@@ -38,7 +39,9 @@ leverage its own comprehensive testing framework and Snowflake's distributed com
 Airflow orchestrates Python and dbt processes. And it is used for its robustness in
 scheduling and orachestrating data processes.
 - **Docker** <br>
-Docker is used to host both Airflow and MinIO object storage.
+Docker is used to host Airflow, MinIO object storage and Buildkite pipeline agent.
+- **Buildkite** <br>
+Buildkite is used for building CI/CD pipeline, and is selected given its hybrid CI/CD SaaS model that provides security and efficiency by self-hosting the pipeline compute.
 
 ## Data Process
 <img src="./images/airflow dag.png" width="800">
@@ -66,9 +69,9 @@ weather measurement schemas in Snowflake to ensure data integrity.
 In executing the above tasks, Airflow dag is designed to send email alerts upon success or failure of the task to assist job monitoring.
 
 Scripts can be found at:
-- Airflow dag script: [airflow/dags](https://github.com/TravisH0301/weather_analytics_platform/tree/main/airflow/dags)
-- Python scripts: [airflow/dags/scripts](https://github.com/TravisH0301/weather_analytics_platform/tree/main/airflow/dags/scripts)
-- dbt scripts: [airflow/dags/dbt](https://github.com/TravisH0301/weather_analytics_platform/tree/main/airflow/dags/dbt)
+- Airflow dag script: [airflow/dags/](https://github.com/TravisH0301/weather_analytics_platform/tree/main/airflow/dags)
+- Python scripts: [airflow/dags/scripts/](https://github.com/TravisH0301/weather_analytics_platform/tree/main/airflow/dags/scripts)
+- dbt scripts: [airflow/dags/dbt/](https://github.com/TravisH0301/weather_analytics_platform/tree/main/airflow/dags/dbt)
 
 ## Data Model
 <img src="./images/data model.png" width="800">
@@ -106,12 +109,29 @@ Row counts between staging schema and weather schemas are compared.
 
 Likewise, data integrity has been achieved by having adequate data validation layers in the workflow.
 
+## CI/CD
+[![Build status](https://badge.buildkite.com/0175b2e6dff7302d0c6758615c301b240ae19df549d603864b.svg)](https://buildkite.com/personal-176/weather-analytics-platform)
+
+A CI/CD pipeline is built on Buildkite to conduct unit tests on the preprocessing steps for the weather and station datasets. When the pipeline build is executed, the following steps are taken in the local agent deployed on Docker:
+
+1. Read pipeline.yml from the repository (by default the repository is cloned in the agent).
+2. Install dependencies via pip.
+3. Conduct unit tests using test datasets
+
+Scripts can be found at:
+- Buildkite dependencies: [buildkite/](https://github.com/TravisH0301/weather_analytics_platform/tree/main/buildkite)
+- Unit test dependencies: [tests/](https://github.com/TravisH0301/weather_analytics_platform/tree/main/tests)
+
+
 ## Consideration
 - **Object storage lifecycle** <br>
 Lifecycle can be set up in the object storage by either archiving or deleting old contents in the bucket to reserve storage cost. 
 
 - **Query optimisation** <br>
 When the data volume grows, clustering in Snowflake can be considered to enhance query performance. Clustering allows records to be co-located within micro-partitions and enables worker nodes to skip irrelevant records. Columns that are often used for filtering or join are good candidates for the clustering key. On the other hand, appropriate compute resource size or "warehouse" should be considered when usage and data volume grow.
+
+- **DevOps** <br>
+The scope of the CI/CD only covers a unit test. For future improvement, different test types, such as integration test or regression test, can be considered to ensure robust continuous integration of the data product.
 
 ## Data Source
 [Bureau of Meteorology FTP Public Products](http://www.bom.gov.au/catalogue/anon-ftp.shtml)
