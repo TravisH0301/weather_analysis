@@ -9,6 +9,5 @@ test_sql/*
 __pycache__/
 *.pdf
 *.lnk
-*.csv
 *.pptx
 
